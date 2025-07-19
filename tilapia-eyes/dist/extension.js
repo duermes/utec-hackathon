@@ -1,17 +1,16 @@
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ([
 /* 0 */,
 /* 1 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("vscode");
 
 /***/ }),
 /* 2 */
 /***/ ((__unused_webpack_module, exports) => {
 
-"use strict";
 
 
 /**
@@ -930,14 +929,12 @@ exports.GoogleGenerativeAI = GoogleGenerativeAI;
 /* 3 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("path");
 
 /***/ }),
 /* 4 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const WebSocket = __webpack_require__(5);
@@ -957,7 +954,6 @@ module.exports = WebSocket;
 /* 5 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^Duplex|Readable$", "caughtErrors": "none" }] */
 
 
@@ -2352,63 +2348,54 @@ function socketOnError() {
 /* 6 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("events");
 
 /***/ }),
 /* 7 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("https");
 
 /***/ }),
 /* 8 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("http");
 
 /***/ }),
 /* 9 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("net");
 
 /***/ }),
 /* 10 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("tls");
 
 /***/ }),
 /* 11 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("crypto");
 
 /***/ }),
 /* 12 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("stream");
 
 /***/ }),
 /* 13 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("url");
 
 /***/ }),
 /* 14 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const zlib = __webpack_require__(15);
@@ -2943,14 +2930,12 @@ function inflateOnError(err) {
 /* 15 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("zlib");
 
 /***/ }),
 /* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const { EMPTY_BUFFER } = __webpack_require__(17);
@@ -3088,7 +3073,6 @@ if (!process.env.WS_NO_BUFFER_UTIL) {
 /* 17 */
 /***/ ((module) => {
 
-"use strict";
 
 
 const BINARY_TYPES = ['nodebuffer', 'arraybuffer', 'fragments'];
@@ -3113,7 +3097,6 @@ module.exports = {
 /* 18 */
 /***/ ((module) => {
 
-"use strict";
 
 
 const kDone = Symbol('kDone');
@@ -3175,7 +3158,6 @@ module.exports = Limiter;
 /* 19 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const { Writable } = __webpack_require__(12);
@@ -3888,7 +3870,6 @@ module.exports = Receiver;
 /* 20 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const { isUtf8 } = __webpack_require__(21);
@@ -4047,14 +4028,12 @@ if (isUtf8) {
 /* 21 */
 /***/ ((module) => {
 
-"use strict";
 module.exports = require("buffer");
 
 /***/ }),
 /* 22 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^Duplex" }] */
 
 
@@ -4663,7 +4642,6 @@ function onError(sender, err, cb) {
 /* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const { kForOnEventAttribute, kListener } = __webpack_require__(17);
@@ -4962,7 +4940,6 @@ function callListener(listener, thisArg, event) {
 /* 24 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const { tokenChars } = __webpack_require__(20);
@@ -5172,7 +5149,6 @@ module.exports = { format, parse };
 /* 25 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^WebSocket$" }] */
 
 
@@ -5340,7 +5316,6 @@ module.exports = createWebSocketStream;
 /* 26 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 /* eslint no-unused-vars: ["error", { "varsIgnorePattern": "^Duplex$", "caughtErrors": "none" }] */
 
 
@@ -5897,7 +5872,6 @@ function abortHandshakeOrEmitwsClientError(
 /* 27 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
 
 
 const { tokenChars } = __webpack_require__(20);
@@ -5962,1022 +5936,6 @@ function parse(header) {
 module.exports = { parse };
 
 
-/***/ }),
-/* 28 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-const assert = __webpack_require__(29)
-const debug = __webpack_require__(30)('record')
-const { spawn } = __webpack_require__(38)
-const recorders = __webpack_require__(39)
-
-class Recording {
-  constructor (options = {}) {
-    const defaults = {
-      sampleRate: 16000,
-      channels: 1,
-      compress: false,
-      threshold: 0.5,
-      thresholdStart: null,
-      thresholdEnd: null,
-      silence: '1.0',
-      recorder: 'sox',
-      endOnSilence: false,
-      audioType: 'wav'
-    }
-
-    this.options = Object.assign(defaults, options)
-
-    const recorder = recorders.load(this.options.recorder)
-    const { cmd, args, spawnOptions = {} } = recorder(this.options)
-
-    this.cmd = cmd
-    this.args = args
-    this.cmdOptions = Object.assign({ encoding: 'binary', stdio: 'pipe' }, spawnOptions)
-
-    debug(`Started recording`)
-    debug(this.options)
-    debug(` ${this.cmd} ${this.args.join(' ')}`)
-
-    return this.start()
-  }
-
-  start () {
-    const { cmd, args, cmdOptions } = this
-
-    const cp = spawn(cmd, args, cmdOptions)
-    const rec = cp.stdout
-    const err = cp.stderr
-
-    this.process = cp // expose child process
-    this._stream = rec // expose output stream
-
-    cp.on('close', code => {
-      if (code === 0) return
-      rec.emit('error', `${this.cmd} has exited with error code ${code}.
-
-Enable debugging with the environment variable DEBUG=record.`
-      )
-    })
-
-    err.on('data', chunk => {
-      debug(`STDERR: ${chunk}`)
-    })
-
-    rec.on('data', chunk => {
-      debug(`Recording ${chunk.length} bytes`)
-    })
-
-    rec.on('end', () => {
-      debug('Recording ended')
-    })
-
-    return this
-  }
-
-  stop () {
-    assert(this.process, 'Recording not yet started')
-
-    this.process.kill()
-  }
-
-  pause () {
-    assert(this.process, 'Recording not yet started')
-
-    this.process.kill('SIGSTOP')
-    this._stream.pause()
-    debug('Paused recording')
-  }
-
-  resume () {
-    assert(this.process, 'Recording not yet started')
-
-    this.process.kill('SIGCONT')
-    this._stream.resume()
-    debug('Resumed recording')
-  }
-
-  isPaused () {
-    assert(this.process, 'Recording not yet started')
-
-    return this._stream.isPaused()
-  }
-
-  stream () {
-    assert(this._stream, 'Recording not yet started')
-
-    return this._stream
-  }
-}
-
-module.exports = {
-  record: (...args) => new Recording(...args)
-}
-
-
-/***/ }),
-/* 29 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("assert");
-
-/***/ }),
-/* 30 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/**
- * Detect Electron renderer process, which is node, but we should
- * treat as a browser.
- */
-
-if (typeof process !== 'undefined' && process.type === 'renderer') {
-  module.exports = __webpack_require__(31);
-} else {
-  module.exports = __webpack_require__(34);
-}
-
-
-/***/ }),
-/* 31 */
-/***/ ((module, exports, __webpack_require__) => {
-
-/**
- * This is the web browser implementation of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = __webpack_require__(32);
-exports.log = log;
-exports.formatArgs = formatArgs;
-exports.save = save;
-exports.load = load;
-exports.useColors = useColors;
-exports.storage = 'undefined' != typeof chrome
-               && 'undefined' != typeof chrome.storage
-                  ? chrome.storage.local
-                  : localstorage();
-
-/**
- * Colors.
- */
-
-exports.colors = [
-  'lightseagreen',
-  'forestgreen',
-  'goldenrod',
-  'dodgerblue',
-  'darkorchid',
-  'crimson'
-];
-
-/**
- * Currently only WebKit-based Web Inspectors, Firefox >= v31,
- * and the Firebug extension (any Firefox version) are known
- * to support "%c" CSS customizations.
- *
- * TODO: add a `localStorage` variable to explicitly enable/disable colors
- */
-
-function useColors() {
-  // NB: In an Electron preload script, document will be defined but not fully
-  // initialized. Since we know we're in Chrome, we'll just detect this case
-  // explicitly
-  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
-    return true;
-  }
-
-  // is webkit? http://stackoverflow.com/a/16459606/376773
-  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-    // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-    // is firefox >= v31?
-    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
-}
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-exports.formatters.j = function(v) {
-  try {
-    return JSON.stringify(v);
-  } catch (err) {
-    return '[UnexpectedJSONParseError]: ' + err.message;
-  }
-};
-
-
-/**
- * Colorize log arguments if enabled.
- *
- * @api public
- */
-
-function formatArgs(args) {
-  var useColors = this.useColors;
-
-  args[0] = (useColors ? '%c' : '')
-    + this.namespace
-    + (useColors ? ' %c' : ' ')
-    + args[0]
-    + (useColors ? '%c ' : ' ')
-    + '+' + exports.humanize(this.diff);
-
-  if (!useColors) return;
-
-  var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
-
-  // the final "%c" is somewhat tricky, because there could be other
-  // arguments passed either before or after the %c, so we need to
-  // figure out the correct index to insert the CSS into
-  var index = 0;
-  var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
-    if ('%%' === match) return;
-    index++;
-    if ('%c' === match) {
-      // we only are interested in the *last* %c
-      // (the user may have provided their own)
-      lastC = index;
-    }
-  });
-
-  args.splice(lastC, 0, c);
-}
-
-/**
- * Invokes `console.log()` when available.
- * No-op when `console.log` is not a "function".
- *
- * @api public
- */
-
-function log() {
-  // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
-}
-
-/**
- * Save `namespaces`.
- *
- * @param {String} namespaces
- * @api private
- */
-
-function save(namespaces) {
-  try {
-    if (null == namespaces) {
-      exports.storage.removeItem('debug');
-    } else {
-      exports.storage.debug = namespaces;
-    }
-  } catch(e) {}
-}
-
-/**
- * Load `namespaces`.
- *
- * @return {String} returns the previously persisted debug modes
- * @api private
- */
-
-function load() {
-  var r;
-  try {
-    r = exports.storage.debug;
-  } catch(e) {}
-
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
-  if (!r && typeof process !== 'undefined' && 'env' in process) {
-    r = process.env.DEBUG;
-  }
-
-  return r;
-}
-
-/**
- * Enable namespaces listed in `localStorage.debug` initially.
- */
-
-exports.enable(load());
-
-/**
- * Localstorage attempts to return the localstorage.
- *
- * This is necessary because safari throws
- * when a user disables cookies/localstorage
- * and you attempt to access it.
- *
- * @return {LocalStorage}
- * @api private
- */
-
-function localstorage() {
-  try {
-    return window.localStorage;
-  } catch (e) {}
-}
-
-
-/***/ }),
-/* 32 */
-/***/ ((module, exports, __webpack_require__) => {
-
-
-/**
- * This is the common logic for both the Node.js and web browser
- * implementations of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
-exports.coerce = coerce;
-exports.disable = disable;
-exports.enable = enable;
-exports.enabled = enabled;
-exports.humanize = __webpack_require__(33);
-
-/**
- * The currently active debug mode names, and names to skip.
- */
-
-exports.names = [];
-exports.skips = [];
-
-/**
- * Map of special "%n" handling functions, for the debug "format" argument.
- *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
- */
-
-exports.formatters = {};
-
-/**
- * Previous log timestamp.
- */
-
-var prevTime;
-
-/**
- * Select a color.
- * @param {String} namespace
- * @return {Number}
- * @api private
- */
-
-function selectColor(namespace) {
-  var hash = 0, i;
-
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-
-  return exports.colors[Math.abs(hash) % exports.colors.length];
-}
-
-/**
- * Create a debugger with the given `namespace`.
- *
- * @param {String} namespace
- * @return {Function}
- * @api public
- */
-
-function createDebug(namespace) {
-
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
-
-    var self = debug;
-
-    // set `diff` timestamp
-    var curr = +new Date();
-    var ms = curr - (prevTime || curr);
-    self.diff = ms;
-    self.prev = prevTime;
-    self.curr = curr;
-    prevTime = curr;
-
-    // turn the `arguments` into a proper Array
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-
-    args[0] = exports.coerce(args[0]);
-
-    if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
-    }
-
-    // apply any `formatters` transformations
-    var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
-      // if we encounter an escaped % then don't increase the array index
-      if (match === '%%') return match;
-      index++;
-      var formatter = exports.formatters[format];
-      if ('function' === typeof formatter) {
-        var val = args[index];
-        match = formatter.call(self, val);
-
-        // now we need to remove `args[index]` since it's inlined in the `format`
-        args.splice(index, 1);
-        index--;
-      }
-      return match;
-    });
-
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
-
-    var logFn = debug.log || exports.log || console.log.bind(console);
-    logFn.apply(self, args);
-  }
-
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
-
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
-
-  return debug;
-}
-
-/**
- * Enables a debug mode by namespaces. This can include modes
- * separated by a colon and wildcards.
- *
- * @param {String} namespaces
- * @api public
- */
-
-function enable(namespaces) {
-  exports.save(namespaces);
-
-  exports.names = [];
-  exports.skips = [];
-
-  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-  var len = split.length;
-
-  for (var i = 0; i < len; i++) {
-    if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
-    if (namespaces[0] === '-') {
-      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
-    } else {
-      exports.names.push(new RegExp('^' + namespaces + '$'));
-    }
-  }
-}
-
-/**
- * Disable debug output.
- *
- * @api public
- */
-
-function disable() {
-  exports.enable('');
-}
-
-/**
- * Returns true if the given mode name is enabled, false otherwise.
- *
- * @param {String} name
- * @return {Boolean}
- * @api public
- */
-
-function enabled(name) {
-  var i, len;
-  for (i = 0, len = exports.skips.length; i < len; i++) {
-    if (exports.skips[i].test(name)) {
-      return false;
-    }
-  }
-  for (i = 0, len = exports.names.length; i < len; i++) {
-    if (exports.names[i].test(name)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Coerce `val`.
- *
- * @param {Mixed} val
- * @return {Mixed}
- * @api private
- */
-
-function coerce(val) {
-  if (val instanceof Error) return val.stack || val.message;
-  return val;
-}
-
-
-/***/ }),
-/* 33 */
-/***/ ((module) => {
-
-/**
- * Helpers.
- */
-
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
-
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} [options]
- * @throws {Error} throw an error if val is not a non-empty string or a number
- * @return {String|Number}
- * @api public
- */
-
-module.exports = function(val, options) {
-  options = options || {};
-  var type = typeof val;
-  if (type === 'string' && val.length > 0) {
-    return parse(val);
-  } else if (type === 'number' && isNaN(val) === false) {
-    return options.long ? fmtLong(val) : fmtShort(val);
-  }
-  throw new Error(
-    'val is not a non-empty string or a valid number. val=' +
-      JSON.stringify(val)
-  );
-};
-
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = String(str);
-  if (str.length > 100) {
-    return;
-  }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
-    str
-  );
-  if (!match) {
-    return;
-  }
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-    default:
-      return undefined;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtShort(ms) {
-  if (ms >= d) {
-    return Math.round(ms / d) + 'd';
-  }
-  if (ms >= h) {
-    return Math.round(ms / h) + 'h';
-  }
-  if (ms >= m) {
-    return Math.round(ms / m) + 'm';
-  }
-  if (ms >= s) {
-    return Math.round(ms / s) + 's';
-  }
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtLong(ms) {
-  return plural(ms, d, 'day') ||
-    plural(ms, h, 'hour') ||
-    plural(ms, m, 'minute') ||
-    plural(ms, s, 'second') ||
-    ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) {
-    return;
-  }
-  if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name;
-  }
-  return Math.ceil(ms / n) + ' ' + name + 's';
-}
-
-
-/***/ }),
-/* 34 */
-/***/ ((module, exports, __webpack_require__) => {
-
-/**
- * Module dependencies.
- */
-
-var tty = __webpack_require__(35);
-var util = __webpack_require__(36);
-
-/**
- * This is the Node.js implementation of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = __webpack_require__(32);
-exports.init = init;
-exports.log = log;
-exports.formatArgs = formatArgs;
-exports.save = save;
-exports.load = load;
-exports.useColors = useColors;
-
-/**
- * Colors.
- */
-
-exports.colors = [6, 2, 3, 4, 5, 1];
-
-/**
- * Build up the default `inspectOpts` object from the environment variables.
- *
- *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
- */
-
-exports.inspectOpts = Object.keys(process.env).filter(function (key) {
-  return /^debug_/i.test(key);
-}).reduce(function (obj, key) {
-  // camel-case
-  var prop = key
-    .substring(6)
-    .toLowerCase()
-    .replace(/_([a-z])/g, function (_, k) { return k.toUpperCase() });
-
-  // coerce string value into JS value
-  var val = process.env[key];
-  if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
-  else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
-  else if (val === 'null') val = null;
-  else val = Number(val);
-
-  obj[prop] = val;
-  return obj;
-}, {});
-
-/**
- * The file descriptor to write the `debug()` calls to.
- * Set the `DEBUG_FD` env variable to override with another value. i.e.:
- *
- *   $ DEBUG_FD=3 node script.js 3>debug.log
- */
-
-var fd = parseInt(process.env.DEBUG_FD, 10) || 2;
-
-if (1 !== fd && 2 !== fd) {
-  util.deprecate(function(){}, 'except for stderr(2) and stdout(1), any other usage of DEBUG_FD is deprecated. Override debug.log if you want to use a different log function (https://git.io/debug_fd)')()
-}
-
-var stream = 1 === fd ? process.stdout :
-             2 === fd ? process.stderr :
-             createWritableStdioStream(fd);
-
-/**
- * Is stdout a TTY? Colored output is enabled when `true`.
- */
-
-function useColors() {
-  return 'colors' in exports.inspectOpts
-    ? Boolean(exports.inspectOpts.colors)
-    : tty.isatty(fd);
-}
-
-/**
- * Map %o to `util.inspect()`, all on a single line.
- */
-
-exports.formatters.o = function(v) {
-  this.inspectOpts.colors = this.useColors;
-  return util.inspect(v, this.inspectOpts)
-    .split('\n').map(function(str) {
-      return str.trim()
-    }).join(' ');
-};
-
-/**
- * Map %o to `util.inspect()`, allowing multiple lines if needed.
- */
-
-exports.formatters.O = function(v) {
-  this.inspectOpts.colors = this.useColors;
-  return util.inspect(v, this.inspectOpts);
-};
-
-/**
- * Adds ANSI color escape codes if enabled.
- *
- * @api public
- */
-
-function formatArgs(args) {
-  var name = this.namespace;
-  var useColors = this.useColors;
-
-  if (useColors) {
-    var c = this.color;
-    var prefix = '  \u001b[3' + c + ';1m' + name + ' ' + '\u001b[0m';
-
-    args[0] = prefix + args[0].split('\n').join('\n' + prefix);
-    args.push('\u001b[3' + c + 'm+' + exports.humanize(this.diff) + '\u001b[0m');
-  } else {
-    args[0] = new Date().toUTCString()
-      + ' ' + name + ' ' + args[0];
-  }
-}
-
-/**
- * Invokes `util.format()` with the specified arguments and writes to `stream`.
- */
-
-function log() {
-  return stream.write(util.format.apply(util, arguments) + '\n');
-}
-
-/**
- * Save `namespaces`.
- *
- * @param {String} namespaces
- * @api private
- */
-
-function save(namespaces) {
-  if (null == namespaces) {
-    // If you set a process.env field to null or undefined, it gets cast to the
-    // string 'null' or 'undefined'. Just delete instead.
-    delete process.env.DEBUG;
-  } else {
-    process.env.DEBUG = namespaces;
-  }
-}
-
-/**
- * Load `namespaces`.
- *
- * @return {String} returns the previously persisted debug modes
- * @api private
- */
-
-function load() {
-  return process.env.DEBUG;
-}
-
-/**
- * Copied from `node/src/node.js`.
- *
- * XXX: It's lame that node doesn't expose this API out-of-the-box. It also
- * relies on the undocumented `tty_wrap.guessHandleType()` which is also lame.
- */
-
-function createWritableStdioStream (fd) {
-  var stream;
-  var tty_wrap = process.binding('tty_wrap');
-
-  // Note stream._type is used for test-module-load-list.js
-
-  switch (tty_wrap.guessHandleType(fd)) {
-    case 'TTY':
-      stream = new tty.WriteStream(fd);
-      stream._type = 'tty';
-
-      // Hack to have stream not keep the event loop alive.
-      // See https://github.com/joyent/node/issues/1726
-      if (stream._handle && stream._handle.unref) {
-        stream._handle.unref();
-      }
-      break;
-
-    case 'FILE':
-      var fs = __webpack_require__(37);
-      stream = new fs.SyncWriteStream(fd, { autoClose: false });
-      stream._type = 'fs';
-      break;
-
-    case 'PIPE':
-    case 'TCP':
-      var net = __webpack_require__(9);
-      stream = new net.Socket({
-        fd: fd,
-        readable: false,
-        writable: true
-      });
-
-      // FIXME Should probably have an option in net.Socket to create a
-      // stream from an existing fd which is writable only. But for now
-      // we'll just add this hack and set the `readable` member to false.
-      // Test: ./node test/fixtures/echo.js < /etc/passwd
-      stream.readable = false;
-      stream.read = null;
-      stream._type = 'pipe';
-
-      // FIXME Hack to have stream not keep the event loop alive.
-      // See https://github.com/joyent/node/issues/1726
-      if (stream._handle && stream._handle.unref) {
-        stream._handle.unref();
-      }
-      break;
-
-    default:
-      // Probably an error on in uv_guess_handle()
-      throw new Error('Implement me. Unknown stream file type!');
-  }
-
-  // For supporting legacy API we put the FD here.
-  stream.fd = fd;
-
-  stream._isStdio = true;
-
-  return stream;
-}
-
-/**
- * Init logic for `debug` instances.
- *
- * Create a new `inspectOpts` object in case `useColors` is set
- * differently for a particular `debug` instance.
- */
-
-function init (debug) {
-  debug.inspectOpts = {};
-
-  var keys = Object.keys(exports.inspectOpts);
-  for (var i = 0; i < keys.length; i++) {
-    debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
-  }
-}
-
-/**
- * Enable namespaces listed in `process.env.DEBUG` initially.
- */
-
-exports.enable(load());
-
-
-/***/ }),
-/* 35 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("tty");
-
-/***/ }),
-/* 36 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("util");
-
-/***/ }),
-/* 37 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs");
-
-/***/ }),
-/* 38 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
-
-/***/ }),
-/* 39 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const path = __webpack_require__(3)
-
-function load (recorderName) {
-  try {
-    const recoderPath = path.resolve(__dirname, recorderName)
-    return __webpack_require__(40)(recoderPath)
-  } catch (err) {
-    if (err.code === 'MODULE_NOT_FOUND') {
-      throw new Error(`No such recorder found: ${recorderName}`)
-    }
-
-    throw err
-  }
-}
-
-module.exports = {
-  load
-}
-
-
-/***/ }),
-/* 40 */
-/***/ ((module) => {
-
-function webpackEmptyContext(req) {
-	var e = new Error("Cannot find module '" + req + "'");
-	e.code = 'MODULE_NOT_FOUND';
-	throw e;
-}
-webpackEmptyContext.keys = () => ([]);
-webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = 40;
-module.exports = webpackEmptyContext;
-
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -7006,16 +5964,9 @@ module.exports = webpackEmptyContext;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-"use strict";
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -7029,7 +5980,8 @@ class GeminiVoiceAssistant {
         this.context = context;
         this.genAI = null;
         this.isRecording = false;
-        this.webviewPanel = null;
+        // Propiedad para manejar la vista de la barra lateral
+        this.webviewView = null;
         this.mcpSocket = null;
         this.projectInfo = null;
         this.initializeGemini();
@@ -7040,6 +5992,41 @@ class GeminiVoiceAssistant {
         const apiKey = config.get("apiKey");
         if (apiKey) {
             this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+            console.log("Cliente de Gemini inicializado con éxito.");
+        }
+        else {
+            console.warn("API Key de Gemini no encontrada. Por favor, configúrala en el panel.");
+        }
+        // Actualiza la vista por si el estado de la API key cambió
+        this.updateApiKeyStatus();
+    }
+    //================================================================================
+    //== Guarda la API Key desde el panel
+    //================================================================================
+    async saveApiKey(key) {
+        if (!key) {
+            vscode.window.showErrorMessage("La API Key no puede estar vacía.");
+            return;
+        }
+        try {
+            const config = vscode.workspace.getConfiguration("geminiVoice");
+            // Guardamos la clave en la configuración GLOBAL del usuario
+            await config.update("apiKey", key, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage("API Key de Gemini guardada correctamente.");
+            // Re-inicializamos Gemini con la nueva clave
+            this.initializeGemini();
+        }
+        catch (error) {
+            vscode.window.showErrorMessage(`No se pudo guardar la API Key: ${error}`);
+        }
+    }
+    updateApiKeyStatus() {
+        if (this.webviewView) {
+            const hasApiKey = !!this.genAI;
+            this.webviewView.webview.postMessage({
+                type: "apiKeyStatusUpdate",
+                data: { hasApiKey },
+            });
         }
     }
     async connectToMCP() {
@@ -7057,10 +6044,11 @@ class GeminiVoiceAssistant {
             });
             this.mcpSocket.on("error", (error) => {
                 console.error("Error de conexión MCP:", error);
+                vscode.window.showWarningMessage("No se pudo conectar al servidor MCP. El análisis de proyecto estará limitado.");
             });
         }
         catch (error) {
-            console.error("Error al conectar con MCP:", error);
+            console.error("Error al iniciar la conexión con MCP:", error);
         }
     }
     handleMCPResponse(response) {
@@ -7069,71 +6057,71 @@ class GeminiVoiceAssistant {
             this.updateWebview();
         }
     }
+    //================================================================================
+    //== Analiza el archivo activo directamente con Gemini
+    //================================================================================
+    async analyzeActiveFileWithGemini() {
+        if (!this.genAI) {
+            vscode.window.showErrorMessage("La API Key de Gemini no está configurada. Por favor, guárdala en el panel del asistente.");
+            return;
+        }
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+            vscode.window.showErrorMessage("Por favor, abre un archivo en el editor para analizarlo.");
+            return;
+        }
+        const document = activeEditor.document;
+        const fileContent = document.getText();
+        const language = document.languageId;
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Gemini está analizando tu código...",
+            cancellable: false,
+        }, async (progress) => {
+            try {
+                const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                const prompt = `
+          Eres un asistente experto en análisis de código y un programador senior.
+          Analiza el siguiente fragmento de código en lenguaje "${language}".
+
+          Proporciona un análisis detallado que incluya:
+          1.  **Resumen**: Una breve descripción de lo que hace el código.
+          2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
+          3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
+          4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
+
+          Aquí está el código:
+          \`\`\`${language}
+          ${fileContent}
+          \`\`\`
+        `;
+                const result = await model.generateContent(prompt);
+                const response = result.response.text();
+                await this.handleGeminiResponse(response, `Análisis del archivo: ${path.basename(document.fileName)}`);
+            }
+            catch (error) {
+                vscode.window.showErrorMessage(`Error al contactar con Gemini: ${error}`);
+            }
+        });
+    }
+    // --- Funciones de grabación de voz ---
     async startRecording() {
         if (this.isRecording)
             return;
         this.isRecording = true;
         vscode.window.showInformationMessage("🎤 Grabando audio...");
-        try {
-            // Implementación de grabación de audio
-            const audioBuffer = await this.captureAudio();
-            console.log("aqui1");
-            const transcript = await this.transcribeAudio(audioBuffer);
-            console.log("aqui2");
-            if (transcript) {
-                console.log("aqui3");
-                await this.processVoiceCommand(transcript);
+        // Aquí iría tu implementación real de grabación de audio
+        // Por ahora, simularemos una transcripción después de un retraso
+        setTimeout(() => {
+            if (this.isRecording) {
+                this.processVoiceCommand("Simulación de comando de voz: Analiza el proyecto.");
+                this.stopRecording();
             }
-        }
-        catch (error) {
-            vscode.window.showErrorMessage(`Error en la grabación: ${error}`);
-        }
-        finally {
-            this.isRecording = false;
-        }
+        }, 5000);
     }
     stopRecording() {
         this.isRecording = false;
         vscode.window.showInformationMessage("⏹️ Grabación detenida");
-    }
-    async captureAudio() {
-        return new Promise((resolve, reject) => {
-            const record = __webpack_require__(28);
-            const chunks = [];
-            const recording = record.record({
-                sampleRateHertz: 16000,
-                threshold: 0,
-                verbose: false,
-                recordProgram: "rec",
-                silence: "1.0s",
-            });
-            recording.stream().on("data", (chunk) => {
-                chunks.push(chunk);
-            });
-            recording.stream().on("end", () => {
-                resolve(Buffer.concat(chunks));
-            });
-            recording.stream().on("error", (err) => {
-                reject(err);
-            });
-            // Auto-stop after 10 seconds
-            setTimeout(() => {
-                recording.stop();
-            }, 10000);
-        });
-    }
-    async transcribeAudio(audioBuffer) {
-        // Aquí integrarías un servicio de transcripción
-        // Por ejemplo, Google Speech-to-Text, Azure Speech, etc.
-        // Para este ejemplo, simularemos la transcripción
-        try {
-            // Simulación de transcripción - reemplazar con servicio real
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            return "Analiza los errores en el archivo main.py y sugiere correcciones";
-        }
-        catch (error) {
-            throw new Error("Error en la transcripción");
-        }
     }
     async processVoiceCommand(command) {
         if (!this.genAI) {
@@ -7141,16 +6129,9 @@ class GeminiVoiceAssistant {
             return;
         }
         try {
-            const model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
             const context = this.buildContextForGemini();
-            const prompt = `
-        Contexto del proyecto: ${JSON.stringify(context, null, 2)}
-        
-        Comando del usuario: ${command}
-        
-        Por favor, analiza la solicitud y proporciona una respuesta específica basada en el contexto del proyecto.
-        Si es necesario editar archivos, proporciona las modificaciones exactas.
-      `;
+            const prompt = `Contexto del proyecto: ${JSON.stringify(context, null, 2)}\n\nComando del usuario: ${command}\n\nPor favor, analiza la solicitud y proporciona una respuesta específica basada en el contexto del proyecto. Si es necesario editar archivos, proporciona las modificaciones exactas.`;
             const result = await model.generateContent(prompt);
             const response = result.response.text();
             await this.handleGeminiResponse(response, command);
@@ -7180,12 +6161,11 @@ class GeminiVoiceAssistant {
         };
     }
     async handleGeminiResponse(response, originalCommand) {
-        // Crear panel de webview para mostrar la respuesta
-        if (!this.webviewPanel) {
-            this.createWebviewPanel();
+        if (!this.webviewView) {
+            vscode.window.showInformationMessage("La respuesta de Gemini está lista. Abra la vista del asistente para verla.");
+            return;
         }
-        // Actualizar el webview con la respuesta
-        this.webviewPanel?.webview.postMessage({
+        this.webviewView.webview.postMessage({
             type: "gemini_response",
             data: {
                 command: originalCommand,
@@ -7193,11 +6173,9 @@ class GeminiVoiceAssistant {
                 timestamp: new Date().toISOString(),
             },
         });
-        // Intentar aplicar cambios automáticamente si es posible
         await this.tryApplyChanges(response);
     }
     async tryApplyChanges(response) {
-        // Analizar la respuesta de Gemini para cambios de código
         const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
         const matches = [...response.matchAll(codeBlockRegex)];
         for (const match of matches) {
@@ -7205,16 +6183,14 @@ class GeminiVoiceAssistant {
             const code = match[2];
             if (language && code) {
                 const action = await vscode.window.showInformationMessage(`¿Aplicar cambios sugeridos en ${language}?`, "Aplicar", "Revisar", "Cancelar");
-                if (action === "Aplicar") {
-                    await this.applyCodeChanges(code, language);
-                }
-                else if (action === "Revisar") {
+                if (action === "Aplicar")
+                    await this.applyCodeChanges(code);
+                else if (action === "Revisar")
                     await this.showCodePreview(code, language);
-                }
             }
         }
     }
-    async applyCodeChanges(code, language) {
+    async applyCodeChanges(code) {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor) {
             const edit = new vscode.WorkspaceEdit();
@@ -7229,8 +6205,9 @@ class GeminiVoiceAssistant {
             content: code,
             language: language,
         });
-        await vscode.window.showTextDocument(doc);
+        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
     }
+    // --- Sincronización con el servidor MCP ---
     async analyzeCurrentProject() {
         let projectPath;
         if (vscode.workspace.workspaceFolders &&
@@ -7238,7 +6215,6 @@ class GeminiVoiceAssistant {
             projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
         }
         else if (vscode.window.activeTextEditor) {
-            // Si no hay workspace, usa el directorio del archivo activo
             projectPath = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
         }
         if (!projectPath) {
@@ -7257,119 +6233,56 @@ class GeminiVoiceAssistant {
             };
             if (this.mcpSocket && this.mcpSocket.readyState === ws_1.WebSocket.OPEN) {
                 this.mcpSocket.send(JSON.stringify(projectData));
-            }
-            else {
-                // El análisis local también necesita una ruta raíz
-                const uri = vscode.Uri.file(projectPath);
-                const folderName = path.basename(projectPath);
-                await this.performLocalAnalysis({ uri, name: folderName, index: 0 });
+                vscode.window.setStatusBarMessage("Sincronizando información del proyecto con MCP...", 3000);
             }
         }
         catch (error) {
             vscode.window.showErrorMessage(`Error al analizar el proyecto: ${error}`);
         }
     }
-    async performLocalAnalysis(projectRoot) {
-        const files = [];
-        const errors = [];
-        // Obtener archivos del "proyecto" (sea un workspace o una carpeta de archivo)
-        const filePattern = new vscode.RelativePattern(projectRoot, "**/*");
-        const foundFiles = await vscode.workspace.findFiles(filePattern, "**/node_modules/**");
-        for (const file of foundFiles.slice(0, 50)) {
-            // Limitar a 50 archivos
-            try {
-                const content = await vscode.workspace.fs.readFile(file);
-                const text = Buffer.from(content).toString("utf8");
-                files.push({
-                    path: vscode.workspace.asRelativePath(file, false),
-                    content: text.length > 1000 ? text.substring(0, 1000) + "..." : text,
-                    language: this.getLanguageFromExtension(file.fsPath),
-                });
-            }
-            catch (error) {
-                console.error(`Error leyendo archivo ${file.fsPath}:`, error);
-            }
-        }
-        // Obtener diagnósticos (errores)
-        vscode.languages.getDiagnostics().forEach(([uri, diagnostics]) => {
-            diagnostics.forEach((diagnostic) => {
-                errors.push({
-                    file: vscode.workspace.asRelativePath(uri, false),
-                    line: diagnostic.range.start.line + 1,
-                    message: diagnostic.message,
-                    severity: this.getSeverityString(diagnostic.severity),
-                });
-            });
-        });
-        this.projectInfo = {
-            files,
-            structure: { type: "local_analysis" },
-            errors,
-            dependencies: {},
-        };
-        this.updateWebview();
-    }
-    getLanguageFromExtension(filePath) {
-        const ext = path.extname(filePath).toLowerCase();
-        const langMap = {
-            ".js": "javascript",
-            ".ts": "typescript",
-            ".py": "python",
-            ".java": "java",
-            ".cpp": "cpp",
-            ".c": "c",
-            ".html": "html",
-            ".css": "css",
-            ".json": "json",
-            ".md": "markdown",
-        };
-        return langMap[ext] || "text";
-    }
-    getSeverityString(severity) {
-        switch (severity) {
-            case vscode.DiagnosticSeverity.Error:
-                return "error";
-            case vscode.DiagnosticSeverity.Warning:
-                return "warning";
-            case vscode.DiagnosticSeverity.Information:
-                return "info";
-            case vscode.DiagnosticSeverity.Hint:
-                return "hint";
-            default:
-                return "unknown";
-        }
-    }
-    createWebviewPanel() {
-        this.webviewPanel = vscode.window.createWebviewPanel("geminiVoiceView", "Gemini Voice Assistant", vscode.ViewColumn.Two, {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-        });
-        this.webviewPanel.webview.html = this.getWebviewContent();
-        this.webviewPanel.webview.onDidReceiveMessage((message) => {
+    //================================================================================
+    //== MÉTODO CLAVE: Configura la vista de la barra lateral (WebviewView)
+    //================================================================================
+    resolveWebviewView(webviewView) {
+        this.webviewView = webviewView;
+        webviewView.webview.options = { enableScripts: true };
+        webviewView.webview.html = this.getWebviewContent();
+        webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
+                case "saveApiKey":
+                    await this.saveApiKey(message.key);
+                    break;
                 case "startRecording":
                     this.startRecording();
                     break;
                 case "stopRecording":
                     this.stopRecording();
                     break;
-                case "analyzeProject":
+                case "analyzeActiveFile":
+                    this.analyzeActiveFileWithGemini();
+                    break;
+                case "syncProject":
                     this.analyzeCurrentProject();
                     break;
             }
         });
-        this.webviewPanel.onDidDispose(() => {
-            this.webviewPanel = null;
+        webviewView.onDidDispose(() => {
+            this.webviewView = null;
         });
+        this.updateApiKeyStatus();
+        this.updateWebview();
     }
     updateWebview() {
-        if (this.webviewPanel) {
-            this.webviewPanel.webview.postMessage({
+        if (this.webviewView) {
+            this.webviewView.webview.postMessage({
                 type: "update_project_info",
                 data: this.projectInfo,
             });
         }
     }
+    //================================================================================
+    //== HTML COMPLETO: Contenido del Webview con la sección de API Key
+    //================================================================================
     getWebviewContent() {
         return `<!DOCTYPE html>
     <html lang="es">
@@ -7378,83 +6291,123 @@ class GeminiVoiceAssistant {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Gemini Voice Assistant</title>
         <style>
-            body {
-                font-family: var(--vscode-font-family);
-                color: var(--vscode-foreground);
-                background-color: var(--vscode-editor-background);
-                margin: 0;
-                padding: 20px;
+            body { 
+                font-family: var(--vscode-font-family); 
+                color: var(--vscode-foreground); 
+                background-color: var(--vscode-editor-background); 
+                margin: 0; 
+                padding: 20px; 
             }
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
+            .container { 
+                max-width: 800px; 
+                margin: 0 auto; 
             }
-            .section {
-                margin-bottom: 30px;
-                padding: 15px;
-                border: 1px solid var(--vscode-panel-border);
-                border-radius: 5px;
+            .section { 
+                margin-bottom: 20px; 
+                padding: 15px; 
+                border: 1px solid var(--vscode-panel-border); 
+                border-radius: 5px; 
             }
-            .button {
-                background-color: var(--vscode-button-background);
-                color: var(--vscode-button-foreground);
-                border: none;
-                padding: 10px 20px;
-                margin: 5px;
-                border-radius: 3px;
-                cursor: pointer;
+            h1, h2 { 
+                margin-top: 0; 
+                border-bottom: 1px solid var(--vscode-panel-border);
+                padding-bottom: 8px;
             }
-            .button:hover {
-                background-color: var(--vscode-button-hoverBackground);
+            .button { 
+                background-color: var(--vscode-button-background); 
+                color: var(--vscode-button-foreground); 
+                border: none; 
+                padding: 10px 15px; 
+                margin: 5px 0; 
+                border-radius: 3px; 
+                cursor: pointer; 
+                width: 100%; 
+                text-align: left; 
+                display: block;
             }
-            .button.recording {
-                background-color: #ff4444;
-                animation: pulse 1s infinite;
+            .button:hover { 
+                background-color: var(--vscode-button-hoverBackground); 
             }
-            @keyframes pulse {
-                0% { opacity: 1; }
-                50% { opacity: 0.5; }
-                100% { opacity: 1; }
+            .button.recording { 
+                background-color: #ff4444; 
+                animation: pulse 1s infinite; 
             }
-            .status {
-                font-weight: bold;
-                margin: 10px 0;
+            @keyframes pulse { 
+                0% { opacity: 1; } 
+                50% { opacity: 0.5; } 
+                100% { opacity: 1; } 
             }
-            .project-info {
-                font-size: 12px;
-                max-height: 200px;
-                overflow-y: auto;
+            .api-key-input { 
+                width: calc(100% - 22px); 
+                padding: 8px; 
+                margin-bottom: 10px; 
+                border-radius: 3px; 
+                border: 1px solid var(--vscode-input-border); 
+                background-color: var(--vscode-input-background); 
+                color: var(--vscode-input-foreground); 
             }
-            .response {
-                background-color: var(--vscode-textBlockQuote-background);
-                padding: 15px;
-                margin: 10px 0;
-                border-left: 4px solid var(--vscode-textBlockQuote-border);
-                white-space: pre-wrap;
+            .api-key-status { 
+                padding: 10px; 
+                background-color: var(--vscode-textBlockQuote-background); 
+                border-left: 4px solid var(--vscode-focusBorder); 
+                border-radius: 3px; 
             }
-            .error {
-                color: var(--vscode-errorForeground);
+            .status { 
+                font-weight: bold; 
+                margin: 10px 0; 
             }
-            .warning {
-                color: var(--vscode-warningForeground);
+            .project-info { 
+                font-size: 12px; 
+                max-height: 150px; 
+                overflow-y: auto; 
+                background-color: var(--vscode-textBlockQuote-background); 
+                padding: 10px; 
+                border-radius: 3px; 
             }
+            .response { 
+                background-color: var(--vscode-textBlockQuote-background); 
+                padding: 15px; 
+                margin: 10px 0; 
+                border-left: 4px solid var(--vscode-textBlockQuote-border); 
+                white-space: pre-wrap; 
+                word-wrap: break-word;
+            }
+            .error { color: var(--vscode-errorForeground); }
+            .warning { color: var(--vscode-warningForeground); }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>🎤 Gemini Voice Assistant</h1>
+            <h1>Gemini Assistant</h1>
+
+            <div class="section">
+                <h2>Configuración</h2>
+                <div id="apiKeyForm">
+                    <p>Introduce tu API Key de Google Gemini:</p>
+                    <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Pega tu API Key aquí">
+                    <button id="saveApiKeyBtn" class="button">Guardar API Key</button>
+                </div>
+                <div id="apiKeyStatus" style="display: none;" class="api-key-status">
+                    <p>✅ API Key configurada y activa.</p>
+                </div>
+            </div>
             
             <div class="section">
-                <h2>Control de Audio</h2>
+                <h2>Acciones Rápidas</h2>
+                <button id="analyzeFileBtn" class="button">🤖 Analizar Archivo Actual</button>
+                <button id="syncProjectBtn" class="button">🔄 Sincronizar Proyecto (MCP)</button>
+            </div>
+
+            <div class="section">
+                <h2>Control por Voz</h2>
                 <button id="recordBtn" class="button">🎤 Iniciar Grabación</button>
                 <button id="stopBtn" class="button" disabled>⏹️ Detener</button>
                 <div id="status" class="status">Listo para grabar</div>
             </div>
 
             <div class="section">
-                <h2>Análisis del Proyecto</h2>
-                <button id="analyzeBtn" class="button">🔍 Analizar Proyecto</button>
-                <div id="projectInfo" class="project-info"></div>
+                <h2>Información del Proyecto (MCP)</h2>
+                <div id="projectInfo" class="project-info"><p>Presiona "Sincronizar Proyecto" para cargar la información.</p></div>
             </div>
 
             <div class="section">
@@ -7465,88 +6418,83 @@ class GeminiVoiceAssistant {
 
         <script>
             const vscode = acquireVsCodeApi();
-            let isRecording = false;
 
-            document.getElementById('recordBtn').addEventListener('click', () => {
-                if (!isRecording) {
-                    vscode.postMessage({ command: 'startRecording' });
-                    startRecordingUI();
+            const apiKeyForm = document.getElementById('apiKeyForm');
+            const apiKeyStatus = document.getElementById('apiKeyStatus');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+
+            saveApiKeyBtn.addEventListener('click', () => {
+                const key = apiKeyInput.value;
+                if (key) {
+                    vscode.postMessage({ command: 'saveApiKey', key: key });
                 }
             });
 
-            document.getElementById('stopBtn').addEventListener('click', () => {
-                if (isRecording) {
-                    vscode.postMessage({ command: 'stopRecording' });
-                    stopRecordingUI();
-                }
-            });
-
-            document.getElementById('analyzeBtn').addEventListener('click', () => {
-                vscode.postMessage({ command: 'analyzeProject' });
-            });
-
-            function startRecordingUI() {
-                isRecording = true;
-                document.getElementById('recordBtn').disabled = true;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('recordBtn').classList.add('recording');
-                document.getElementById('status').textContent = 'Grabando...';
-            }
-
-            function stopRecordingUI() {
-                isRecording = false;
-                document.getElementById('recordBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('recordBtn').classList.remove('recording');
-                document.getElementById('status').textContent = 'Procesando...';
-            }
+            document.getElementById('analyzeFileBtn').addEventListener('click', () => vscode.postMessage({ command: 'analyzeActiveFile' }));
+            document.getElementById('syncProjectBtn').addEventListener('click', () => vscode.postMessage({ command: 'syncProject' }));
+            document.getElementById('recordBtn').addEventListener('click', () => vscode.postMessage({ command: 'startRecording' }));
+            document.getElementById('stopBtn').addEventListener('click', () => vscode.postMessage({ command: 'stopRecording' }));
 
             window.addEventListener('message', event => {
                 const message = event.data;
-                
                 switch (message.type) {
+                    case 'apiKeyStatusUpdate':
+                        updateApiKeyView(message.data.hasApiKey);
+                        break;
                     case 'update_project_info':
                         updateProjectInfo(message.data);
                         break;
                     case 'gemini_response':
                         addGeminiResponse(message.data);
-                        stopRecordingUI();
-                        document.getElementById('status').textContent = 'Listo para grabar';
                         break;
                 }
             });
 
+            function updateApiKeyView(hasKey) {
+                if (hasKey) {
+                    apiKeyForm.style.display = 'none';
+                    apiKeyStatus.style.display = 'block';
+                } else {
+                    apiKeyForm.style.display = 'block';
+                    apiKeyStatus.style.display = 'none';
+                }
+            }
+
             function updateProjectInfo(data) {
                 const projectInfoDiv = document.getElementById('projectInfo');
-                if (!data) {
-                    projectInfoDiv.innerHTML = '<p>No hay información del proyecto disponible</p>';
+                if (!data || (!data.files && !data.errors)) {
+                    projectInfoDiv.innerHTML = '<p>No hay información del proyecto o no se pudo cargar.</p>';
                     return;
                 }
-
                 let html = '';
-                if (data.files && data.files.length > 0) {
-                    html += \`<p><strong>Archivos:</strong> \${data.files.length}</p>\`;
-                }
+                if (data.files && data.files.length > 0) html += \`<p><strong>Archivos:</strong> \${data.files.length}</p>\`;
                 if (data.errors && data.errors.length > 0) {
-                    html += \`<p><strong>Errores:</strong> \${data.errors.length}</p>\`;
+                    html += \`<p><strong>Errores Detectados:</strong> \${data.errors.length}</p>\`;
                     html += '<div class="errors">';
                     data.errors.slice(0, 5).forEach(error => {
                         html += \`<p class="\${error.severity}">📁 \${error.file}:\${error.line} - \${error.message}</p>\`;
                     });
                     html += '</div>';
                 }
-                
-                projectInfoDiv.innerHTML = html;
+                projectInfoDiv.innerHTML = html || '<p>Análisis completado. No se encontraron errores o archivos relevantes.</p>';
             }
 
             function addGeminiResponse(data) {
                 const responsesDiv = document.getElementById('responses');
                 const responseEl = document.createElement('div');
                 responseEl.className = 'response';
+                
+                const sanitizedCommand = document.createElement('div');
+                sanitizedCommand.innerText = data.command;
+
+                const sanitizedResponse = document.createElement('div');
+                sanitizedResponse.innerText = data.response;
+
                 responseEl.innerHTML = \`
-                    <strong>Comando:</strong> \${data.command}<br>
-                    <strong>Respuesta:</strong><br>
-                    \${data.response}
+                    <strong>Comando:</strong> \${sanitizedCommand.innerHTML}<br>
+                    <strong>Respuesta de Gemini:</strong><br>
+                    \${sanitizedResponse.innerHTML.replace(/\\n/g, '<br>')}
                     <br><small>\${new Date(data.timestamp).toLocaleString()}</small>
                 \`;
                 responsesDiv.insertBefore(responseEl, responsesDiv.firstChild);
@@ -7556,25 +6504,19 @@ class GeminiVoiceAssistant {
     </html>`;
     }
 }
+//================================================================================
+//== FUNCIÓN DE ACTIVACIÓN: Registra todos los componentes de la extensión
+//================================================================================
 function activate(context) {
     const assistant = new GeminiVoiceAssistant(context);
-    // Registrar comandos
-    const startRecording = vscode.commands.registerCommand("geminiVoice.startRecording", () => {
-        assistant.startRecording();
-    });
-    const stopRecording = vscode.commands.registerCommand("geminiVoice.stopRecording", () => {
-        assistant.stopRecording();
-    });
-    const analyzeProject = vscode.commands.registerCommand("geminiVoice.analyzeProject", () => {
-        assistant.analyzeCurrentProject();
-    });
-    // Registrar provider de vista
-    const provider = vscode.window.registerWebviewViewProvider("geminiVoiceView", {
+    // Registrar comandos para que puedan ser usados desde la paleta de comandos (Ctrl+Shift+P)
+    context.subscriptions.push(vscode.commands.registerCommand("geminiVoice.startRecording", () => assistant.startRecording()), vscode.commands.registerCommand("geminiVoice.analyzeActiveFile", () => assistant.analyzeActiveFileWithGemini()), vscode.commands.registerCommand("geminiVoice.syncProject", () => assistant.analyzeCurrentProject()));
+    // Registrar el proveedor que crea y maneja la vista en la barra lateral
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider("geminiVoiceView", {
         resolveWebviewView(webviewView) {
-            assistant.createWebviewPanel();
+            assistant.resolveWebviewView(webviewView);
         },
-    });
-    context.subscriptions.push(startRecording, stopRecording, analyzeProject, provider);
+    }));
 }
 exports.activate = activate;
 function deactivate() { }
