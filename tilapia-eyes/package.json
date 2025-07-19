@@ -1,41 +1,100 @@
 {
-  "name": "tilapia-eyes",
-  "displayName": "tilapia-eyes",
-  "description": "AI assistant",
-  "version": "0.0.1",
+  "name": "gemini-voice-assistant",
+  "displayName": "Gemini Voice Assistant",
+  "description": "Extensión de VS Code con entrada de audio paºra interactuar con Gemini y MCP",
+  "version": "1.0.0",
   "engines": {
-    "vscode": "^1.102.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "tilapia-eyes.helloWorld",
-        "title": "Hello World"
+        "command": "geminiVoice.startRecording",
+        "title": "Iniciar Grabación de Audio",
+        "icon": "$(mic)"
+      },
+      {
+        "command": "geminiVoice.stopRecording",
+        "title": "Detener Grabación",
+        "icon": "$(mic-filled)"
+      },
+      {
+        "command": "geminiVoice.analyzeProject",
+        "title": "Analizar Proyecto con Gemini",
+        "icon": "$(search)"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "geminiVoicePanel",
+          "title": "Gemini Voice Assistant",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "views": {
+      "geminiVoicePanel": [
+        {
+          "type": "webview",
+          "id": "geminiVoiceView",
+          "name": "Voice Assistant",
+          "when": "true"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Gemini Voice Assistant",
+      "properties": {
+        "geminiVoice.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API Key de Gemini"
+        },
+        "geminiVoice.mcpEndpoint": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Endpoint del servidor MCP"
+        },
+        "geminiVoice.autoAnalyze": {
+          "type": "boolean",
+          "default": true,
+          "description": "Analizar automáticamente el proyecto al iniciar"
+        }
+      }
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out"
   },
   "devDependencies": {
-    "@types/vscode": "^1.101.0",
+    "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.31.1",
-    "@typescript-eslint/parser": "^8.31.1",
-    "eslint": "^9.25.1",
-    "typescript": "^5.8.3",
-    "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.9.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.0"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1",
+    "node-record-lpcm16": "^1.0.1",
+    "speech-to-text": "^2.0.0",
+    "ws": "^8.14.0"
   }
 }
