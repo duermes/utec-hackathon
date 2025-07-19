@@ -1,9 +1,10 @@
 /* 
 Interaction functions for vs code extensions API
 */
+import * as vscode from "vscode";
 
-function requestWriteText(startLine: number, endLine: number, text: string): void {
-  const editor = vscode.window.activeTextEditor;
+export function requestWriteText(startLine: number, endLine: number, text: string): void {
+  const editor : vscode.TextEditor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
   }
@@ -13,12 +14,12 @@ function requestWriteText(startLine: number, endLine: number, text: string): voi
   const end = new vscode.Position(endLine, 0);
   const range = new vscode.Range(start, end);
 
-  editor.edit((editBuilder) => {
+  editor.edit((editBuilder: vscode.TextEditorEdit) => {
     editBuilder.replace(range, text);
   });
 }
 
-function requestReadText(startLine: number, endLine: number): string {
+export function requestReadText(startLine: number, endLine: number): string {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return "";
@@ -32,7 +33,7 @@ function requestReadText(startLine: number, endLine: number): string {
   return document.getText(range);
 }
 
-function requestGetErrors() : string {
+export function requestGetErrors() : string[] {
     const editor = vscode.window.activeTextEditor;
     // TODO: hacer algo si no hay editor activo?
 
@@ -40,12 +41,18 @@ function requestGetErrors() : string {
     const diagnostics = vscode.languages.getDiagnostics(uri);
 
     if (diagnostics.length === 0) {
-      return "No hay errores en el archivo actual.";
+      return ["No hay errores en el archivo actual."];
     } else {
-        let errors : string[];
+        let errors : string[] = [];
         
-        diagnostics.forEach(d => {
-            errors.push(`[ ${d.severity}] ${d.message} en línea ${d.range.start.line + 1}`);
+        diagnostics.forEach((d: { severity: any; message: any; range: { start: { line: number; }; }; }) => {
+            errors.push(`gravedad: ${d.severity}, mensaje: ${d.message}, linea: ${d.range.start.line + 1}`);
         });
+        return errors;
     }
+}
+
+// TODO: impl
+export function requestOpenEditor() : void {
+
 }
