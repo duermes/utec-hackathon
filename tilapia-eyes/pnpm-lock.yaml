@@ -20,13 +20,6 @@ importers:
       ws:
         specifier: ^8.18.3
         version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-    optionalDependencies:
-      bufferutil:
-        specifier: ^4.0.9
-        version: 4.0.9
-      utf-8-validate:
-        specifier: ^6.0.5
-        version: 6.0.5
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0
@@ -64,6 +57,13 @@ importers:
       webpack-cli:
         specifier: ^5.1.4
         version: 5.1.4(webpack@5.100.2)
+    optionalDependencies:
+      bufferutil:
+        specifier: ^4.0.9
+        version: 4.0.9
+      utf-8-validate:
+        specifier: ^6.0.5
+        version: 6.0.5
 
 packages:
 
