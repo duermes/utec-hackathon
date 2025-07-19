@@ -1,1 +1,3 @@
-tilapia-eyes/node_modules
+tilapia-eyes/node_modules/*
+tilapia-eyes/out
+tilapia-eyes/.vscode-testS

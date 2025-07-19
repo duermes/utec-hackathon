@@ -5,21 +5,39 @@ import * as vscode from 'vscode';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const panel = vscode.window.createWebviewPanel(
+    'tilapia-eyes.mainPanel',
+    'Tilapia Eyes',
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true
+    }
+  );
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "tilapia-eyes" is now active!');
+  panel.webview.html = getWebviewContent();
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('tilapia-eyes.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from tilapia-eyes!');
-	});
+  /*
+  - capacidades
+  > editar 
+  > describir 
+  > corregir
+  */
+}
 
-	context.subscriptions.push(disposable);
+function getWebviewContent(): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Hola</title>
+    </head>
+    <body>
+      <h1>👋 Bienvenido al Panel Web</h1>
+      <p>Este panel se abrió automáticamente al activar la extensión.</p>
+    </body>
+    </html>
+  `;
 }
 
 // This method is called when your extension is deactivated
