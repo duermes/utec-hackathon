@@ -6339,356 +6339,14 @@ function parse(header) {
 module.exports = { parse };
 
 
-/***/ })
-/******/ 	]);
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
-(() => {
+/***/ }),
+/* 36 */
+/***/ ((__unused_webpack_module, exports) => {
+
 "use strict";
-var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deactivate = exports.activate = void 0;
-const vscode = __webpack_require__(1);
-const generative_ai_1 = __webpack_require__(2);
-const path = __webpack_require__(3);
-const ws_1 = __webpack_require__(4);
-class GeminiVoiceAssistant {
-    constructor(context) {
-        this.context = context;
-        this.genAI = null;
-        this.isRecording = false;
-        // Propiedad para manejar la vista de la barra lateral
-        this.webviewView = null;
-        this.mcpSocket = null;
-        this.projectInfo = null;
-        this.initializeGemini();
-        this.connectToMCP();
-    }
-    initializeGemini() {
-        const config = vscode.workspace.getConfiguration("geminiVoice");
-        const apiKey = config.get("apiKey");
-        if (apiKey) {
-            this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-            console.log("Cliente de Gemini inicializado con éxito.");
-        }
-        else {
-            console.warn("API Key de Gemini no encontrada. Por favor, configúrala en el panel.");
-        }
-        // Actualiza la vista por si el estado de la API key cambió
-        this.updateApiKeyStatus();
-    }
-    //================================================================================
-    //== Guarda la API Key desde el panel
-    //================================================================================
-    async saveApiKey(key) {
-        if (!key) {
-            vscode.window.showErrorMessage("La API Key no puede estar vacía.");
-            return;
-        }
-        try {
-            const config = vscode.workspace.getConfiguration("geminiVoice");
-            // Guardamos la clave en la configuración GLOBAL del usuario
-            await config.update("apiKey", key, vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage("API Key de Gemini guardada correctamente.");
-            // Re-inicializamos Gemini con la nueva clave
-            this.initializeGemini();
-        }
-        catch (error) {
-            vscode.window.showErrorMessage(`No se pudo guardar la API Key: ${error}`);
-        }
-    }
-    updateApiKeyStatus() {
-        if (this.webviewView) {
-            const hasApiKey = !!this.genAI;
-            this.webviewView.webview.postMessage({
-                type: "apiKeyStatusUpdate",
-                data: { hasApiKey },
-            });
-        }
-    }
-    async connectToMCP() {
-        const config = vscode.workspace.getConfiguration("geminiVoice");
-        const endpoint = config.get("mcpEndpoint");
-        try {
-            this.mcpSocket = new ws_1.WebSocket(endpoint || "ws://localhost:3000");
-            this.mcpSocket.on("open", () => {
-                console.log("Conectado al servidor MCP");
-                this.analyzeCurrentProject();
-            });
-            this.mcpSocket.on("message", (data) => {
-                const response = JSON.parse(data.toString());
-                this.handleMCPResponse(response);
-            });
-            this.mcpSocket.on("error", (error) => {
-                console.error("Error de conexión MCP:", error);
-                vscode.window.showWarningMessage("No se pudo conectar al servidor MCP. El análisis de proyecto estará limitado.");
-            });
-        }
-        catch (error) {
-            console.error("Error al iniciar la conexión con MCP:", error);
-        }
-    }
-    handleMCPResponse(response) {
-        if (response.type === "project_analysis") {
-            this.projectInfo = response.data;
-            this.updateWebview();
-        }
-    }
-    //================================================================================
-    //== Analiza el archivo activo directamente con Gemini
-    //================================================================================
-    async analyzeActiveFileWithGemini() {
-        if (!this.genAI) {
-            vscode.window.showErrorMessage("La API Key de Gemini no está configurada. Por favor, guárdala en el panel del asistente.");
-            return;
-        }
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
-            vscode.window.showErrorMessage("Por favor, abre un archivo en el editor para analizarlo.");
-            return;
-        }
-        const document = activeEditor.document;
-        const fileContent = document.getText();
-        const language = document.languageId;
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Gemini está analizando tu código...",
-            cancellable: false,
-        }, async (progress) => {
-            try {
-                const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-                const prompt = `
-          Eres un asistente experto en análisis de código y un programador senior.
-          Analiza el siguiente fragmento de código en lenguaje "${language}".
-
-          Proporciona un análisis detallado que incluya:
-          1.  **Resumen**: Una breve descripción de lo que hace el código.
-          2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
-          3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
-          4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
-
-          Aquí está el código:
-          \`\`\`${language}
-          ${fileContent}
-          \`\`\`
-        `;
-                const result = await model.generateContent(prompt);
-                const response = result.response.text();
-                await this.handleGeminiResponse(response, `Análisis del archivo: ${path.basename(document.fileName)}`);
-            }
-            catch (error) {
-                vscode.window.showErrorMessage(`Error al contactar con Gemini: ${error}`);
-            }
-        });
-    }
-    // --- Funciones de grabación de voz ---
-    async startRecording() {
-        if (this.isRecording)
-            return;
-        this.isRecording = true;
-        vscode.window.showInformationMessage("🎤 Grabando audio...");
-        // Aquí iría tu implementación real de grabación de audio
-        // Por ahora, simularemos una transcripción después de un retraso
-        setTimeout(() => {
-            if (this.isRecording) {
-                this.processVoiceCommand("Simulación de comando de voz: Analiza el proyecto.");
-                this.stopRecording();
-            }
-        }, 5000);
-    }
-    stopRecording() {
-        this.isRecording = false;
-        vscode.window.showInformationMessage("⏹️ Grabación detenida");
-    }
-    async processVoiceCommand(command) {
-        if (!this.genAI) {
-            vscode.window.showErrorMessage("API Key de Gemini no configurada");
-            return;
-        }
-        try {
-            const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-            const context = this.buildContextForGemini();
-            const prompt = `Contexto del proyecto: ${JSON.stringify(context, null, 2)}\n\nComando del usuario: ${command}\n\nPor favor, analiza la solicitud y proporciona una respuesta específica basada en el contexto del proyecto. Si es necesario editar archivos, proporciona las modificaciones exactas.`;
-            const result = await model.generateContent(prompt);
-            const response = result.response.text();
-            await this.handleGeminiResponse(response, command);
-        }
-        catch (error) {
-            vscode.window.showErrorMessage(`Error con Gemini: ${error}`);
-        }
-    }
-    buildContextForGemini() {
-        let projectRoot = "";
-        if (vscode.workspace.workspaceFolders &&
-            vscode.workspace.workspaceFolders.length > 0) {
-            projectRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        }
-        else if (vscode.window.activeTextEditor) {
-            projectRoot = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
-        }
-        return {
-            workspace: projectRoot,
-            openFiles: vscode.window.visibleTextEditors.map((editor) => ({
-                path: editor.document.fileName,
-                language: editor.document.languageId,
-                content: editor.document.getText(),
-            })),
-            projectInfo: this.projectInfo,
-            activeFile: vscode.window.activeTextEditor?.document.fileName,
-        };
-    }
-    async handleGeminiResponse(response, originalCommand) {
-        if (!this.webviewView) {
-            vscode.window.showInformationMessage("La respuesta de Gemini está lista. Abra la vista del asistente para verla.");
-            return;
-        }
-        this.webviewView.webview.postMessage({
-            type: "gemini_response",
-            data: {
-                command: originalCommand,
-                response: response,
-                timestamp: new Date().toISOString(),
-            },
-        });
-        await this.tryApplyChanges(response);
-    }
-    async tryApplyChanges(response) {
-        const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
-        const matches = [...response.matchAll(codeBlockRegex)];
-        for (const match of matches) {
-            const language = match[1];
-            const code = match[2];
-            if (language && code) {
-                const action = await vscode.window.showInformationMessage(`¿Aplicar cambios sugeridos en ${language}?`, "Aplicar", "Revisar", "Cancelar");
-                if (action === "Aplicar")
-                    await this.applyCodeChanges(code);
-                else if (action === "Revisar")
-                    await this.showCodePreview(code, language);
-            }
-        }
-    }
-    async applyCodeChanges(code) {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (activeEditor) {
-            const edit = new vscode.WorkspaceEdit();
-            const fullRange = new vscode.Range(activeEditor.document.positionAt(0), activeEditor.document.positionAt(activeEditor.document.getText().length));
-            edit.replace(activeEditor.document.uri, fullRange, code);
-            await vscode.workspace.applyEdit(edit);
-            await activeEditor.document.save();
-        }
-    }
-    async showCodePreview(code, language) {
-        const doc = await vscode.workspace.openTextDocument({
-            content: code,
-            language: language,
-        });
-        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
-    }
-    // --- Sincronización con el servidor MCP ---
-    async analyzeCurrentProject() {
-        let projectPath;
-        if (vscode.workspace.workspaceFolders &&
-            vscode.workspace.workspaceFolders.length > 0) {
-            projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        }
-        else if (vscode.window.activeTextEditor) {
-            projectPath = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
-        }
-        if (!projectPath) {
-            vscode.window.showErrorMessage("Para analizar un proyecto, abre una carpeta o un archivo.");
-            return;
-        }
-        try {
-            const projectData = {
-                type: "analyze_project",
-                data: {
-                    path: projectPath,
-                    includeFiles: true,
-                    includeDependencies: true,
-                    includeErrors: true,
-                },
-            };
-            if (this.mcpSocket && this.mcpSocket.readyState === ws_1.WebSocket.OPEN) {
-                this.mcpSocket.send(JSON.stringify(projectData));
-                vscode.window.setStatusBarMessage("Sincronizando información del proyecto con MCP...", 3000);
-            }
-        }
-        catch (error) {
-            vscode.window.showErrorMessage(`Error al analizar el proyecto: ${error}`);
-        }
-    }
-    //================================================================================
-    //== MÉTODO CLAVE: Configura la vista de la barra lateral (WebviewView)
-    //================================================================================
-    resolveWebviewView(webviewView) {
-        this.webviewView = webviewView;
-        webviewView.webview.options = { enableScripts: true };
-        webviewView.webview.html = this.getWebviewContent();
-        webviewView.webview.onDidReceiveMessage(async (message) => {
-            switch (message.command) {
-                case "saveApiKey":
-                    await this.saveApiKey(message.key);
-                    break;
-                case "startRecording":
-                    this.startRecording();
-                    break;
-                case "stopRecording":
-                    this.stopRecording();
-                    break;
-                case "analyzeActiveFile":
-                    this.analyzeActiveFileWithGemini();
-                    break;
-                case "syncProject":
-                    this.analyzeCurrentProject();
-                    break;
-            }
-        });
-        webviewView.onDidDispose(() => {
-            this.webviewView = null;
-        });
-        this.updateApiKeyStatus();
-        this.updateWebview();
-    }
-    updateWebview() {
-        if (this.webviewView) {
-            this.webviewView.webview.postMessage({
-                type: "update_project_info",
-                data: this.projectInfo,
-            });
-        }
-    }
-    //================================================================================
-    //== HTML COMPLETO: Contenido del Webview con la sección de API Key
-    //================================================================================
-    getWebviewContent() {
-        return `<!DOCTYPE html>
+const contentHTML = `<!DOCTYPE html>
     <html lang="es">
     <head>
         <meta charset="UTF-8">
@@ -6906,13 +6564,371 @@ class GeminiVoiceAssistant {
         </script>
     </body>
     </html>`;
+exports["default"] = contentHTML;
+
+
+/***/ }),
+/* 37 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GeminiVoiceAssistant = void 0;
+const vscode = __webpack_require__(1);
+const generative_ai_1 = __webpack_require__(2);
+const path = __webpack_require__(3);
+const ws_1 = __webpack_require__(4);
+const contentHTML_1 = __webpack_require__(36);
+class GeminiVoiceAssistant {
+    constructor(context) {
+        this.context = context;
+        this.genAI = null;
+        this.isRecording = false;
+        // Propiedad para manejar la vista de la barra lateral
+        this.webviewView = null;
+        this.mcpSocket = null;
+        this.projectInfo = null;
+        this.initializeGemini();
+        this.connectToMCP();
+    }
+    initializeGemini() {
+        const config = vscode.workspace.getConfiguration("geminiVoice");
+        const apiKey = config.get("apiKey");
+        if (apiKey) {
+            this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+            console.log("Cliente de Gemini inicializado con éxito.");
+        }
+        else {
+            console.warn("API Key de Gemini no encontrada. Por favor, configúrala en el panel.");
+        }
+        // Actualiza la vista por si el estado de la API key cambió
+        this.updateApiKeyStatus();
+    }
+    //Guarda la API Key desde el panel
+    async saveApiKey(key) {
+        if (!key) {
+            vscode.window.showErrorMessage("La API Key no puede estar vacía.");
+            return;
+        }
+        try {
+            const config = vscode.workspace.getConfiguration("geminiVoice");
+            // Guardamos la clave en la configuración GLOBAL del usuario
+            await config.update("apiKey", key, vscode.ConfigurationTarget.Global);
+            vscode.window.showInformationMessage("API Key de Gemini guardada correctamente.");
+            // Re-inicializamos Gemini con la nueva clave
+            this.initializeGemini();
+        }
+        catch (error) {
+            vscode.window.showErrorMessage(`No se pudo guardar la API Key: ${error}`);
+        }
+    }
+    updateApiKeyStatus() {
+        if (this.webviewView) {
+            const hasApiKey = !!this.genAI;
+            this.webviewView.webview.postMessage({
+                type: "apiKeyStatusUpdate",
+                data: { hasApiKey },
+            });
+        }
+    }
+    async connectToMCP() {
+        const config = vscode.workspace.getConfiguration("geminiVoice");
+        const endpoint = config.get("mcpEndpoint");
+        try {
+            this.mcpSocket = new ws_1.WebSocket(endpoint || "ws://localhost:3000");
+            this.mcpSocket.on("open", () => {
+                console.log("Conectado al servidor MCP");
+                this.analyzeCurrentProject();
+            });
+            this.mcpSocket.on("message", (data) => {
+                const response = JSON.parse(data.toString());
+                this.handleMCPResponse(response);
+            });
+            this.mcpSocket.on("error", (error) => {
+                console.error("Error de conexión MCP:", error);
+                vscode.window.showWarningMessage("No se pudo conectar al servidor MCP. El análisis de proyecto estará limitado.");
+            });
+        }
+        catch (error) {
+            console.error("Error al iniciar la conexión con MCP:", error);
+        }
+    }
+    handleMCPResponse(response) {
+        if (response.type === "project_analysis") {
+            this.projectInfo = response.data;
+            this.updateWebview();
+        }
+    }
+    //== Analiza el archivo activo directamente con Gemini
+    async analyzeActiveFileWithGemini() {
+        if (!this.genAI) {
+            vscode.window.showErrorMessage("La API Key de Gemini no está configurada. Por favor, guárdala en el panel del asistente.");
+            return;
+        }
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+            vscode.window.showErrorMessage("Por favor, abre un archivo en el editor para analizarlo.");
+            return;
+        }
+        const document = activeEditor.document;
+        const fileContent = document.getText();
+        const language = document.languageId;
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Gemini está analizando tu código...",
+            cancellable: false,
+        }, async (progress) => {
+            try {
+                const model = this.genAI.getGenerativeModel({
+                    model: "gemini-2.0-flash",
+                });
+                const prompt = `
+          Eres un asistente experto en análisis de código y un programador senior.
+          Analiza el siguiente fragmento de código en lenguaje "${language}".
+
+          Proporciona un análisis detallado que incluya:
+          1.  **Resumen**: Una breve descripción de lo que hace el código.
+          2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
+          3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
+          4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
+
+          Aquí está el código:
+          \`\`\`${language}
+          ${fileContent}
+          \`\`\`
+        `;
+                const result = await model.generateContent(prompt);
+                const response = result.response.text();
+                await this.handleGeminiResponse(response, `Análisis del archivo: ${path.basename(document.fileName)}`);
+            }
+            catch (error) {
+                vscode.window.showErrorMessage(`Error al contactar con Gemini: ${error}`);
+            }
+        });
+    }
+    // --- Funciones de grabación de voz ---
+    async startRecording() {
+        if (this.isRecording)
+            return;
+        this.isRecording = true;
+        vscode.window.showInformationMessage("🎤 Grabando audio...");
+        // Aquí iría impplementación real de grabación de voz
+        setTimeout(() => {
+            if (this.isRecording) {
+                this.processVoiceCommand("Simulación de comando de voz: Analiza el proyecto.");
+                this.stopRecording();
+            }
+        }, 5000);
+    }
+    stopRecording() {
+        this.isRecording = false;
+        vscode.window.showInformationMessage("⏹️ Grabación detenida");
+    }
+    async processVoiceCommand(command) {
+        if (!this.genAI) {
+            vscode.window.showErrorMessage("API Key de Gemini no configurada");
+            return;
+        }
+        try {
+            const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const context = this.buildContextForGemini();
+            const prompt = `Contexto del proyecto: ${JSON.stringify(context, null, 2)}\n\nComando del usuario: ${command}\n\nPor favor, analiza la solicitud y proporciona una respuesta específica basada en el contexto del proyecto. Si es necesario editar archivos, proporciona las modificaciones exactas.`;
+            const result = await model.generateContent(prompt);
+            const response = result.response.text();
+            await this.handleGeminiResponse(response, command);
+        }
+        catch (error) {
+            vscode.window.showErrorMessage(`Error con Gemini: ${error}`);
+        }
+    }
+    buildContextForGemini() {
+        let projectRoot = "";
+        if (vscode.workspace.workspaceFolders &&
+            vscode.workspace.workspaceFolders.length > 0) {
+            projectRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        }
+        else if (vscode.window.activeTextEditor) {
+            projectRoot = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
+        }
+        return {
+            workspace: projectRoot,
+            openFiles: vscode.window.visibleTextEditors.map((editor) => ({
+                path: editor.document.fileName,
+                language: editor.document.languageId,
+                content: editor.document.getText(),
+            })),
+            projectInfo: this.projectInfo,
+            activeFile: vscode.window.activeTextEditor?.document.fileName,
+        };
+    }
+    async handleGeminiResponse(response, originalCommand) {
+        if (!this.webviewView) {
+            vscode.window.showInformationMessage("La respuesta de Gemini está lista. Abra la vista del asistente para verla.");
+            return;
+        }
+        this.webviewView.webview.postMessage({
+            type: "gemini_response",
+            data: {
+                command: originalCommand,
+                response: response,
+                timestamp: new Date().toISOString(),
+            },
+        });
+        await this.tryApplyChanges(response);
+    }
+    async tryApplyChanges(response) {
+        const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
+        const matches = [...response.matchAll(codeBlockRegex)];
+        for (const match of matches) {
+            const language = match[1];
+            const code = match[2];
+            if (language && code) {
+                const action = await vscode.window.showInformationMessage(`¿Aplicar cambios sugeridos en ${language}?`, "Aplicar", "Revisar", "Cancelar");
+                if (action === "Aplicar")
+                    await this.applyCodeChanges(code);
+                else if (action === "Revisar")
+                    await this.showCodePreview(code, language);
+            }
+        }
+    }
+    async applyCodeChanges(code) {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor) {
+            const edit = new vscode.WorkspaceEdit();
+            const fullRange = new vscode.Range(activeEditor.document.positionAt(0), activeEditor.document.positionAt(activeEditor.document.getText().length));
+            edit.replace(activeEditor.document.uri, fullRange, code);
+            await vscode.workspace.applyEdit(edit);
+            await activeEditor.document.save();
+        }
+    }
+    async showCodePreview(code, language) {
+        const doc = await vscode.workspace.openTextDocument({
+            content: code,
+            language: language,
+        });
+        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+    }
+    // Sincronización con el servidor MCP
+    async analyzeCurrentProject() {
+        let projectPath;
+        if (vscode.workspace.workspaceFolders &&
+            vscode.workspace.workspaceFolders.length > 0) {
+            projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        }
+        else if (vscode.window.activeTextEditor) {
+            projectPath = path.dirname(vscode.window.activeTextEditor.document.uri.fsPath);
+        }
+        if (!projectPath) {
+            vscode.window.showErrorMessage("Para analizar un proyecto, abre una carpeta o un archivo.");
+            return;
+        }
+        try {
+            const projectData = {
+                type: "analyze_project",
+                data: {
+                    path: projectPath,
+                    includeFiles: true,
+                    includeDependencies: true,
+                    includeErrors: true,
+                },
+            };
+            if (this.mcpSocket && this.mcpSocket.readyState === ws_1.WebSocket.OPEN) {
+                this.mcpSocket.send(JSON.stringify(projectData));
+                vscode.window.setStatusBarMessage("Sincronizando información del proyecto con MCP...", 3000);
+            }
+        }
+        catch (error) {
+            vscode.window.showErrorMessage(`Error al analizar el proyecto: ${error}`);
+        }
+    }
+    //== MÉTODO CLAVE: Configura la vista de la barra lateral (WebviewView)
+    resolveWebviewView(webviewView) {
+        this.webviewView = webviewView;
+        webviewView.webview.options = { enableScripts: true };
+        webviewView.webview.html = this.getWebviewContent();
+        webviewView.webview.onDidReceiveMessage(async (message) => {
+            switch (message.command) {
+                case "saveApiKey":
+                    await this.saveApiKey(message.key);
+                    break;
+                case "startRecording":
+                    this.startRecording();
+                    break;
+                case "stopRecording":
+                    this.stopRecording();
+                    break;
+                case "analyzeActiveFile":
+                    this.analyzeActiveFileWithGemini();
+                    break;
+                case "syncProject":
+                    this.analyzeCurrentProject();
+                    break;
+            }
+        });
+        webviewView.onDidDispose(() => {
+            this.webviewView = null;
+        });
+        this.updateApiKeyStatus();
+        this.updateWebview();
+    }
+    updateWebview() {
+        if (this.webviewView) {
+            this.webviewView.webview.postMessage({
+                type: "update_project_info",
+                data: this.projectInfo,
+            });
+        }
+    }
+    //Contenido del Webview con la sección de API Key (HTML)
+    getWebviewContent() {
+        return contentHTML_1.default;
     }
 }
-//================================================================================
-//== FUNCIÓN DE ACTIVACIÓN: Registra todos los componentes de la extensión
-//================================================================================
+exports.GeminiVoiceAssistant = GeminiVoiceAssistant;
+
+
+/***/ })
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.deactivate = exports.activate = void 0;
+const geminiVoiceAssistant_1 = __webpack_require__(37);
+const vscode = __webpack_require__(1);
+//Registra todos los componentes de la extensión
 function activate(context) {
-    const assistant = new GeminiVoiceAssistant(context);
+    const assistant = new geminiVoiceAssistant_1.GeminiVoiceAssistant(context);
     // Registrar comandos para que puedan ser usados desde la paleta de comandos (Ctrl+Shift+P)
     context.subscriptions.push(vscode.commands.registerCommand("geminiVoice.startRecording", () => assistant.startRecording()), vscode.commands.registerCommand("geminiVoice.analyzeActiveFile", () => assistant.analyzeActiveFileWithGemini()), vscode.commands.registerCommand("geminiVoice.syncProject", () => assistant.analyzeCurrentProject()));
     // Registrar el proveedor que crea y maneja la vista en la barra lateral
