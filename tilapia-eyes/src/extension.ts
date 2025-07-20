@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import {GoogleGenerativeAI} from "@google/generative-ai";
+//import {GoogleGenerativeAI} from "@google/genai";
 import * as path from "path";
 import {WebSocket} from "ws";
 import { GeminiVoiceAssistant }from "./geminiVoiceAssistant"

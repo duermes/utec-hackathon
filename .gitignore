@@ -1,1 +1,4 @@
 tilapia-eyes/node_modules
+tilapia-eyes/package-lock.json
+tilapia-eyes/package.json
+tilapia-eyes/dist/*

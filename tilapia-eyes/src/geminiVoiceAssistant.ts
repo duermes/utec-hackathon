@@ -1,10 +1,17 @@
+// src/geminiVoiceAssistant.ts
+
 import * as vscode from "vscode";
-import {GoogleGenerativeAI} from "@google/generative-ai";
+import { GoogleGenAI, Content, Model } from "@google/genai";
 import * as path from "path";
-import {WebSocket} from "ws";
+import { WebSocket } from "ws";
+import { SpeechClient, protos } from "@google-cloud/speech";
+import { Writable } from "stream";
+import * as fs from "fs";
+import * as os from "os";
+// No longer need mic-recorder, we will inject vmsg into the webview.
 
 interface ProjectInfo {
-  files: Array<{path: string; content: string; language: string}>;
+  files: Array<{ path: string; content: string; language: string }>;
   structure: any;
   errors: Array<{
     file: string;
@@ -16,15 +23,20 @@ interface ProjectInfo {
 }
 
 export class GeminiVoiceAssistant {
-  private genAI: GoogleGenerativeAI | null = null;
+  private ai: GoogleGenAI | null = null;
+  private chatModel: Model | null = null;
   private isRecording = false;
-  // Propiedad para manejar la vista de la barra lateral
   private webviewView: vscode.WebviewView | null = null;
   private mcpSocket: WebSocket | null = null;
   private projectInfo: ProjectInfo | null = null;
 
+  private speechClient: SpeechClient | null = null;
+  private chatHistory: Content[] = [];
+  private currentRecordingPath: string | null = null;
+
   constructor(private context: vscode.ExtensionContext) {
     this.initializeGemini();
+    this.initializeSpeechClient();
     this.connectToMCP();
   }
 
@@ -32,20 +44,27 @@ export class GeminiVoiceAssistant {
     const config = vscode.workspace.getConfiguration("geminiVoice");
     const apiKey = config.get<string>("apiKey");
     if (apiKey) {
-      this.genAI = new GoogleGenerativeAI(apiKey);
+      this.ai = new GoogleGenAI({ apiKey });
       console.log("Cliente de Gemini inicializado con éxito.");
     } else {
-      console.warn(
-        "API Key de Gemini no encontrada. Por favor, configúrala en el panel."
-      );
+      console.warn("API Key de Gemini no encont}rada.");
     }
-    // Actualiza la vista por si el estado de la API key cambió
     this.updateApiKeyStatus();
   }
 
-  //================================================================================
-  //== Guarda la API Key desde el panel
-  //================================================================================
+  private initializeSpeechClient() {
+    try {
+      this.speechClient = new SpeechClient();
+      console.log("Cliente de Speech-to-Text inicializado.");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(
+        `No se pudo inicializar el cliente de Speech-to-Text: ${errorMessage}. Asegúrate de haber configurado la autenticación de Google Cloud.`
+      );
+    }
+  }
+
   public async saveApiKey(key: string) {
     if (!key) {
       vscode.window.showErrorMessage("La API Key no puede estar vacía.");
@@ -53,26 +72,25 @@ export class GeminiVoiceAssistant {
     }
     try {
       const config = vscode.workspace.getConfiguration("geminiVoice");
-      // Guardamos la clave en la configuración GLOBAL del usuario
       await config.update("apiKey", key, vscode.ConfigurationTarget.Global);
-
       vscode.window.showInformationMessage(
         "API Key de Gemini guardada correctamente."
       );
-
-      // Re-inicializamos Gemini con la nueva clave
       this.initializeGemini();
     } catch (error) {
-      vscode.window.showErrorMessage(`No se pudo guardar la API Key: ${error}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(
+        `No se pudo guardar la API Key: ${errorMessage}`
+      );
     }
   }
 
   private updateApiKeyStatus() {
     if (this.webviewView) {
-      const hasApiKey = !!this.genAI;
       this.webviewView.webview.postMessage({
         type: "apiKeyStatusUpdate",
-        data: {hasApiKey},
+        data: { hasApiKey: !!this.ai },
       });
     }
   }
@@ -86,14 +104,14 @@ export class GeminiVoiceAssistant {
         console.log("Conectado al servidor MCP");
         this.analyzeCurrentProject();
       });
-      this.mcpSocket.on("message", (data) => {
+      this.mcpSocket.on("message", (data: any) => {
         const response = JSON.parse(data.toString());
         this.handleMCPResponse(response);
       });
-      this.mcpSocket.on("error", (error) => {
+      this.mcpSocket.on("error", (error: Error) => {
         console.error("Error de conexión MCP:", error);
         vscode.window.showWarningMessage(
-          "No se pudo conectar al servidor MCP. El análisis de proyecto estará limitado."
+          "No se pudo conectar al servidor MCP."
         );
       });
     } catch (error) {
@@ -108,25 +126,20 @@ export class GeminiVoiceAssistant {
     }
   }
 
-  //================================================================================
-  //== Analiza el archivo activo directamente con Gemini
-  //================================================================================
   public async analyzeActiveFileWithGemini() {
-    if (!this.genAI) {
+    if (!this.ai || !this.chatModel) {
       vscode.window.showErrorMessage(
-        "La API Key de Gemini no está configurada. Por favor, guárdala en el panel del asistente."
+        "La API Key de Gemini no está configurada."
       );
       return;
     }
-
     const activeEditor = vscode.window.activeTextEditor;
     if (!activeEditor) {
       vscode.window.showErrorMessage(
-        "Por favor, abre un archivo en el editor para analizarlo."
+        "Por favor, abre un archivo para analizarlo."
       );
       return;
     }
-
     const document = activeEditor.document;
     const fileContent = document.getText();
     const language = document.languageId;
@@ -137,93 +150,234 @@ export class GeminiVoiceAssistant {
         title: "Gemini está analizando tu código...",
         cancellable: false,
       },
-      async (progress) => {
+      async () => {
         try {
-          const model = this.genAI!.getGenerativeModel({
-            model: "gemini-2.0-flash",
-          });
-
-          const prompt = `
-          Eres un asistente experto en análisis de código y un programador senior.
-          Analiza el siguiente fragmento de código en lenguaje "${language}".
-
-          Proporciona un análisis detallado que incluya:
-          1.  **Resumen**: Una breve descripción de lo que hace el código.
-          2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
-          3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
-          4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
-
-          Aquí está el código:
-          \`\`\`${language}
-          ${fileContent}
-          \`\`\`
-        `;
-
-          const result = await model.generateContent(prompt);
-          const response = result.response.text();
-
+          const prompt = `Eres un asistente experto en análisis de código. Analiza el siguiente código en lenguaje "${language}". Proporciona un resumen, posibles errores, sugerencias de mejora y buenas prácticas.\n\nCódigo:\n\`\`\`${language}\n${fileContent}\n\`\`\``;
+          const result = await this.ai?.models.generateContent({model: "gemini-2.0-flash", contents: [{ role: "system", parts: [{ text: prompt }] }] });
+          const responseText = result?.text || "No se obtuvo respuesta de Gemini.";
+          
           await this.handleGeminiResponse(
-            response,
+            responseText,
             `Análisis del archivo: ${path.basename(document.fileName)}`
           );
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           vscode.window.showErrorMessage(
-            `Error al contactar con Gemini: ${error}`
+            `Error al contactar con Gemini: ${errorMessage}`
           );
         }
       }
     );
   }
 
-  // --- Funciones de grabación de voz ---
-  async startRecording() {
+  // The recording is now handled inside the Webview.
+  // These methods are triggered by messages from the webview.
+  public startRecording() {
     if (this.isRecording) return;
     this.isRecording = true;
-    vscode.window.showInformationMessage("🎤 Grabando audio...");
-    // Aquí iría tu implementación real de grabación de audio
-    // Por ahora, simularemos una transcripción después de un retraso
-    setTimeout(() => {
-      if (this.isRecording) {
-        this.processVoiceCommand(
-          "Simulación de comando de voz: Analiza el proyecto."
-        );
-        this.stopRecording();
-      }
-    }, 5000);
+    this.webviewView?.webview.postMessage({ type: "startRecording" });
   }
 
-  stopRecording() {
+  public stopRecording() {
+    if (!this.isRecording) return;
     this.isRecording = false;
-    vscode.window.showInformationMessage("⏹️ Grabación detenida");
+    this.webviewView?.webview.postMessage({ type: "stopRecording" });
+  }
+
+  // This method will be called when the webview sends the audio data.
+  public async processAudio(audioAsDataURL: string) {
+    if (!this.speechClient) {
+      vscode.window.showErrorMessage(
+        "El cliente de Speech-to-Text no está inicializado."
+      );
+      return;
+    }
+
+    vscode.window.showInformationMessage("⏹️ Procesando audio...");
+
+    try {
+      // Convert Data URL to Buffer
+      const base64Data = audioAsDataURL.split(",")[1];
+      const audioBuffer = Buffer.from(base64Data, "base64");
+
+      if (!audioBuffer || audioBuffer.length === 0) {
+        vscode.window.showErrorMessage("No se pudo capturar audio.");
+        this.updateWebviewWithTranscription("No se capturó audio", true);
+        return;
+      }
+
+      console.log(`Audio capturado: ${audioBuffer.length} bytes`);
+      await this.transcribeAudio(audioBuffer);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error("Error al procesar la grabación:", error);
+      vscode.window.showErrorMessage(
+        `Error al procesar el audio: ${errorMessage}`
+      );
+    }
+  }
+
+  private async transcribeAudio(audioBuffer: Buffer) {
+    if (!this.speechClient) {
+      throw new Error("Cliente de Speech-to-Text no disponible");
+    }
+
+    try {
+      console.log(`Transcribiendo audio: ${audioBuffer.length} bytes`);
+
+      const request: protos.google.cloud.speech.v1.IRecognizeRequest = {
+        audio: {
+          content: audioBuffer.toString("base64"),
+        },
+        config: {
+          encoding: "MP3",
+          sampleRateHertz: 16000,
+          languageCode: "es-ES",
+          enableAutomaticPunctuation: true,
+          model: "latest_long",
+          useEnhanced: true,
+        },
+      };
+
+      this.updateWebviewWithTranscription("Transcribiendo...", false);
+
+      console.log("Enviando audio a Google Speech-to-Text...");
+      const [response] = await this.speechClient.recognize(request);
+
+      if (!response.results || response.results.length === 0) {
+        console.warn("No se obtuvieron resultados de transcripción");
+        vscode.window.showWarningMessage(
+          "No se pudo transcribir el audio. Inténtalo de nuevo."
+        );
+        this.updateWebviewWithTranscription("No se detectó audio claro", true);
+        return;
+      }
+
+      const transcript = response.results
+        .map((result) => result.alternatives?.[0]?.transcript || "")
+        .filter((text) => text.length > 0)
+        .join(" ")
+        .trim();
+
+      console.log(`Transcripción obtenida: "${transcript}"`);
+
+      if (transcript && transcript.length > 0) {
+        this.updateWebviewWithTranscription(transcript, true);
+        await this.processVoiceCommand(transcript);
+      } else {
+        vscode.window.showWarningMessage(
+          "No se detectó ningún texto en el audio."
+        );
+        this.updateWebviewWithTranscription("No se detectó texto", true);
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error("Error en la transcripción:", error);
+
+      let userMessage = `Error al transcribir audio: ${errorMessage}`;
+      if (errorMessage.includes("quota")) {
+        userMessage =
+          "Error: Cuota de Google Speech-to-Text excedida. Inténtalo más tarde.";
+      } else if (errorMessage.includes("authentication")) {
+        userMessage =
+          "Error: Problema de autenticación con Google Cloud. Verifica tu configuración.";
+      } else if (errorMessage.includes("invalid")) {
+        userMessage =
+          "Error: El formato de audio no es válido. Inténtalo de nuevo.";
+      }
+
+      vscode.window.showErrorMessage(userMessage);
+      this.updateWebviewWithTranscription("Error en transcripción", true);
+    }
+  }
+
+  private updateWebviewWithTranscription(transcript: string, isFinal: boolean) {
+    if (this.webviewView) {
+      this.webviewView.webview.postMessage({
+        type: "transcription_update",
+        data: { transcript, isFinal },
+      });
+    }
   }
 
   private async processVoiceCommand(command: string) {
-    if (!this.genAI) {
-      vscode.window.showErrorMessage("API Key de Gemini no configurada");
+    if (!this.chatModel) {
+      vscode.window.showErrorMessage("API Key de Gemini no configurada.");
       return;
     }
-    try {
-      const model = this.genAI.getGenerativeModel({model: "gemini-2.0-flash"});
-      const context = this.buildContextForGemini();
-      const prompt = `Contexto del proyecto: ${JSON.stringify(
-        context,
-        null,
-        2
-      )}\n\nComando del usuario: ${command}\n\nPor favor, analiza la solicitud y proporciona una respuesta específica basada en el contexto del proyecto. Si es necesario editar archivos, proporciona las modificaciones exactas.`;
-      const result = await model.generateContent(prompt);
-      const response = result.response.text();
-      await this.handleGeminiResponse(response, command);
-    } catch (error) {
-      vscode.window.showErrorMessage(`Error con Gemini: ${error}`);
+    if (!command) return;
+
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Gemini procesando: "${command}"`,
+        cancellable: false,
+      },
+      async () => {
+        try {
+          const context = this.buildContextForGemini();
+          const prompt = `Contexto del proyecto: ${JSON.stringify(
+            context,
+            null,
+            2
+          )}\n\nComando del usuario: "${command}"\n\nAnaliza la solicitud y proporciona una respuesta específica. Si necesitas editar archivos, proporciona las modificaciones exactas en bloques de código.`;
+
+          const userContent: Content = {
+            role: "user",
+            parts: [{ text: prompt }],
+          };
+          this.chatHistory.push(userContent);
+
+          const chatResult = await this.ai?.models.generateContentStream({ model: "gemini-2.0-flash", contents: this.chatHistory });
+
+          let fullResponse = "";
+          this.updateWebviewWithGeminiStream("", command, true);
+
+          if (chatResult) {
+            for await (const chunk of chatResult) {
+              const chunkText = typeof chunk.text === "string" ? chunk.text : (typeof chunk.text === "function" ? chunk.text : "");
+              fullResponse += chunkText;
+              this.updateWebviewWithGeminiStream(chunkText, command, false);
+            }
+          } else {
+            vscode.window.showErrorMessage("No se pudo obtener respuesta de Gemini.");
+          }
+
+          const modelContent: Content = {
+            role: "model",
+            parts: [{ text: fullResponse }],
+          };
+          this.chatHistory.push(modelContent);
+
+          await this.tryApplyChanges(fullResponse);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          vscode.window.showErrorMessage(`Error con Gemini: ${errorMessage}`);
+        }
+      }
+    );
+  }
+
+  private updateWebviewWithGeminiStream(
+    chunk: string,
+    command: string,
+    isNew: boolean
+  ) {
+    if (this.webviewView) {
+      this.webviewView.webview.postMessage({
+        type: "gemini_stream_chunk",
+        data: { chunk, command, isNew, timestamp: new Date().toISOString() },
+      });
     }
   }
 
   private buildContextForGemini() {
     let projectRoot = "";
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
-    ) {
+    if (vscode.workspace.workspaceFolders?.length) {
       projectRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
     } else if (vscode.window.activeTextEditor) {
       projectRoot = path.dirname(
@@ -235,7 +389,6 @@ export class GeminiVoiceAssistant {
       openFiles: vscode.window.visibleTextEditors.map((editor) => ({
         path: editor.document.fileName,
         language: editor.document.languageId,
-        content: editor.document.getText(),
       })),
       projectInfo: this.projectInfo,
       activeFile: vscode.window.activeTextEditor?.document.fileName,
@@ -248,7 +401,7 @@ export class GeminiVoiceAssistant {
   ) {
     if (!this.webviewView) {
       vscode.window.showInformationMessage(
-        "La respuesta de Gemini está lista. Abra la vista del asistente para verla."
+        "La respuesta de Gemini está lista."
       );
       return;
     }
@@ -267,11 +420,12 @@ export class GeminiVoiceAssistant {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
     const matches = [...response.matchAll(codeBlockRegex)];
     for (const match of matches) {
-      const language = match[1];
+      const language = match[1] || "";
       const code = match[2];
-      if (language && code) {
+      if (code) {
         const action = await vscode.window.showInformationMessage(
-          `¿Aplicar cambios sugeridos en ${language}?`,
+          `Gemini sugiere aplicar cambios de código. ¿Qué deseas hacer?`,
+          { modal: true },
           "Aplicar",
           "Revisar",
           "Cancelar"
@@ -300,27 +454,19 @@ export class GeminiVoiceAssistant {
   private async showCodePreview(code: string, language: string) {
     const doc = await vscode.workspace.openTextDocument({
       content: code,
-      language: language,
+      language,
     });
     await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
   }
 
-  // --- Sincronización con el servidor MCP ---
-  async analyzeCurrentProject() {
+  public async analyzeCurrentProject() {
     let projectPath: string | undefined;
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
-    ) {
+    if (vscode.workspace.workspaceFolders?.length) {
       projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    } else if (vscode.window.activeTextEditor) {
-      projectPath = path.dirname(
-        vscode.window.activeTextEditor.document.uri.fsPath
-      );
     }
     if (!projectPath) {
       vscode.window.showErrorMessage(
-        "Para analizar un proyecto, abre una carpeta o un archivo."
+        "Abre una carpeta para analizar un proyecto."
       );
       return;
     }
@@ -334,36 +480,60 @@ export class GeminiVoiceAssistant {
           includeErrors: true,
         },
       };
-      if (this.mcpSocket && this.mcpSocket.readyState === WebSocket.OPEN) {
+      if (this.mcpSocket?.readyState === WebSocket.OPEN) {
         this.mcpSocket.send(JSON.stringify(projectData));
         vscode.window.setStatusBarMessage(
-          "Sincronizando información del proyecto con MCP...",
+          "Sincronizando proyecto con MCP...",
           3000
         );
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Error al analizar el proyecto: ${error}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      vscode.window.showErrorMessage(
+        `Error al analizar el proyecto: ${errorMessage}`
+      );
     }
   }
 
-  //================================================================================
-  //== MÉTODO CLAVE: Configura la vista de la barra lateral (WebviewView)
-  //================================================================================
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     this.webviewView = webviewView;
-    webviewView.webview.options = {enableScripts: true};
-    webviewView.webview.html = this.getWebviewContent();
+    const wasmUri = webviewView.webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this.context.extensionUri,
+        "node_modules",
+        "vmsg",
+        "vmsg.wasm"
+      )
+    );
+
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [
+        vscode.Uri.joinPath(this.context.extensionUri, "node_modules"),
+      ],
+    };
+
+    webviewView.webview.html = this.getWebviewContent(wasmUri);
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "saveApiKey":
           await this.saveApiKey(message.key);
           break;
-        case "startRecording":
+        case "startRecording": // These are now just for UI updates
           this.startRecording();
           break;
-        case "stopRecording":
+        case "stopRecording": // These are now just for UI updates
           this.stopRecording();
+          break;
+        case "audioReady": // New message from webview with audio data
+          this.processAudio(message.data);
+          break;
+        case "recordingError":
+          vscode.window.showErrorMessage(
+            `Error de grabación: ${message.error}`
+          );
           break;
         case "analyzeActiveFile":
           this.analyzeActiveFileWithGemini();
@@ -377,7 +547,6 @@ export class GeminiVoiceAssistant {
     webviewView.onDidDispose(() => {
       this.webviewView = null;
     });
-
     this.updateApiKeyStatus();
     this.updateWebview();
   }
@@ -391,10 +560,16 @@ export class GeminiVoiceAssistant {
     }
   }
 
-  //================================================================================
-  //== HTML COMPLETO: Contenido del Webview con la sección de API Key
-  //================================================================================
-  private getWebviewContent(): string {
+  private getWebviewContent(wasmUri: vscode.Uri): string {
+    const vmsgUri = this.webviewView?.webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this.context.extensionUri,
+        "node_modules",
+        "vmsg",
+        "vmsg.js"
+      )
+    );
+
     return `<!DOCTYPE html>
     <html lang="es">
     <head>
@@ -402,214 +577,156 @@ export class GeminiVoiceAssistant {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Gemini Voice Assistant</title>
         <style>
-            body { 
-                font-family: var(--vscode-font-family); 
-                color: var(--vscode-foreground); 
-                background-color: var(--vscode-editor-background); 
-                margin: 0; 
-                padding: 20px; 
-            }
-            .container { 
-                max-width: 800px; 
-                margin: 0 auto; 
-            }
-            .section { 
-                margin-bottom: 20px; 
-                padding: 15px; 
-                border: 1px solid var(--vscode-panel-border); 
-                border-radius: 5px; 
-            }
-            h1, h2 { 
-                margin-top: 0; 
-                border-bottom: 1px solid var(--vscode-panel-border);
-                padding-bottom: 8px;
-            }
-            .button { 
-                background-color: var(--vscode-button-background); 
-                color: var(--vscode-button-foreground); 
-                border: none; 
-                padding: 10px 15px; 
-                margin: 5px 0; 
-                border-radius: 3px; 
-                cursor: pointer; 
-                width: 100%; 
-                text-align: left; 
-                display: block;
-            }
-            .button:hover { 
-                background-color: var(--vscode-button-hoverBackground); 
-            }
-            .button.recording { 
-                background-color: #ff4444; 
-                animation: pulse 1s infinite; 
-            }
-            @keyframes pulse { 
-                0% { opacity: 1; } 
-                50% { opacity: 0.5; } 
-                100% { opacity: 1; } 
-            }
-            .api-key-input { 
-                width: calc(100% - 22px); 
-                padding: 8px; 
-                margin-bottom: 10px; 
-                border-radius: 3px; 
-                border: 1px solid var(--vscode-input-border); 
-                background-color: var(--vscode-input-background); 
-                color: var(--vscode-input-foreground); 
-            }
-            .api-key-status { 
-                padding: 10px; 
-                background-color: var(--vscode-textBlockQuote-background); 
-                border-left: 4px solid var(--vscode-focusBorder); 
-                border-radius: 3px; 
-            }
-            .status { 
-                font-weight: bold; 
-                margin: 10px 0; 
-            }
-            .project-info { 
-                font-size: 12px; 
-                max-height: 150px; 
-                overflow-y: auto; 
-                background-color: var(--vscode-textBlockQuote-background); 
-                padding: 10px; 
-                border-radius: 3px; 
-            }
-            .response { 
-                background-color: var(--vscode-textBlockQuote-background); 
-                padding: 15px; 
-                margin: 10px 0; 
-                border-left: 4px solid var(--vscode-textBlockQuote-border); 
-                white-space: pre-wrap; 
-                word-wrap: break-word;
-            }
-            .error { color: var(--vscode-errorForeground); }
-            .warning { color: var(--vscode-warningForeground); }
+            body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); background-color: var(--vscode-editor-background); padding: 20px; margin: 0; }
+            .section { margin-bottom: 20px; padding: 15px; border: 1px solid var(--vscode-panel-border); border-radius: 8px; background-color: var(--vscode-panel-background); }
+            h1, h2 { margin-top: 0; border-bottom: 2px solid var(--vscode-panel-border); padding-bottom: 8px; color: var(--vscode-foreground); }
+            h1 { font-size: 1.5em; }
+            h2 { font-size: 1.2em; }
+            .button { background-color: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 12px 16px; margin: 5px 0; border-radius: 6px; cursor: pointer; width: 100%; text-align: center; display: block; font-size: 14px; font-weight: 500; transition: background-color 0.2s; }
+            .button:hover { background-color: var(--vscode-button-hoverBackground); }
+            .button:disabled { opacity: 0.5; cursor: not-allowed; }
+            .button.recording { background-color: #dc3545; animation: pulse 1.5s infinite; }
+            @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+            .api-key-input { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid var(--vscode-input-border); background-color: var(--vscode-input-background); color: var(--vscode-input-foreground); }
+            .api-key-status { padding: 12px; background-color: var(--vscode-textBlockQuote-background); border-left: 4px solid var(--vscode-charts-green); border-radius: 4px; margin-bottom: 10px; }
+            .status, .transcription { font-weight: 500; margin: 10px 0; padding: 8px; }
+            .transcription { background-color: var(--vscode-textBlockQuote-background); border-left: 3px solid var(--vscode-focusBorder); border-radius: 4px; min-height: 24px; font-style: italic; }
+            .response { background-color: var(--vscode-textBlockQuote-background); padding: 15px; margin: 10px 0; border-left: 4px solid var(--vscode-textBlockQuote-border); border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; font-family: var(--vscode-editor-font-family); line-height: 1.5; }
+            .info-box { background-color: var(--vscode-textBlockQuote-background); border-left: 4px solid var(--vscode-charts-blue); padding: 10px; margin: 10px 0; border-radius: 4px; font-size: 0.9em; }
         </style>
     </head>
     <body>
-        <div class="container">
-            <h1>Gemini Assistant</h1>
-
-            <div class="section">
-                <h2>Configuración</h2>
-                <div id="apiKeyForm">
-                    <p>Introduce tu API Key de Google Gemini:</p>
-                    <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Pega tu API Key aquí">
-                    <button id="saveApiKeyBtn" class="button">Guardar API Key</button>
-                </div>
-                <div id="apiKeyStatus" style="display: none;" class="api-key-status">
-                    <p>✅ API Key configurada y activa.</p>
-                </div>
+        <h1>🎤 Gemini Voice Assistant</h1>
+        
+        <div class="section">
+            <h2>⚙️ Configuración</h2>
+            <div id="apiKeyForm">
+                <p>Introduce tu API Key de Google Gemini:</p>
+                <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Pega tu API Key aquí">
+                <button id="saveApiKeyBtn" class="button">💾 Guardar API Key</button>
+                <div class="info-box">💡 <strong>Tip:</strong> Obtén tu API Key gratuita en <a href="https://makersuite.google.com/app/apikey" style="color: var(--vscode-textLink-foreground);">Google AI Studio</a></div>
             </div>
-            
-            <div class="section">
-                <h2>Acciones Rápidas</h2>
-                <button id="analyzeFileBtn" class="button">🤖 Analizar Archivo Actual</button>
-                <button id="syncProjectBtn" class="button">🔄 Sincronizar Proyecto (MCP)</button>
-            </div>
-
-            <div class="section">
-                <h2>Control por Voz</h2>
-                <button id="recordBtn" class="button">🎤 Iniciar Grabación</button>
-                <button id="stopBtn" class="button" disabled>⏹️ Detener</button>
-                <div id="status" class="status">Listo para grabar</div>
-            </div>
-
-            <div class="section">
-                <h2>Información del Proyecto (MCP)</h2>
-                <div id="projectInfo" class="project-info"><p>Presiona "Sincronizar Proyecto" para cargar la información.</p></div>
-            </div>
-
-            <div class="section">
-                <h2>Respuestas de Gemini</h2>
-                <div id="responses"></div>
-            </div>
+            <div id="apiKeyStatus" style="display: none;" class="api-key-status"><p>✅ <strong>API Key configurada y activa.</strong></p></div>
         </div>
-
-        <script>
+        
+        <div class="section">
+            <h2>🎙️ Control por Voz</h2>
+            <button id="recordBtn" class="button">🎤 Iniciar Grabación</button>
+            <div id="status" class="status">✅ Listo para grabar</div>
+            <div id="transcription" class="transcription">La transcripción aparecerá aquí...</div>
+            <div class="info-box">ℹ️ La grabación se realiza en el navegador. No se necesitan dependencias externas.</div>
+        </div>
+        
+        <div class="section">
+            <h2>🤖 Respuestas de Gemini</h2>
+            <div id="responses"><p style="color: var(--vscode-descriptionForeground); font-style: italic;">Las conversaciones aparecerán aquí...</p></div>
+        </div>
+        
+        <script type="module">
+            import vmsg from "${vmsgUri}";
             const vscode = acquireVsCodeApi();
-
+            const recordBtn = document.getElementById('recordBtn');
+            const statusDiv = document.getElementById('status');
+            const transcriptionDiv = document.getElementById('transcription');
+            const responsesDiv = document.getElementById('responses');
             const apiKeyForm = document.getElementById('apiKeyForm');
             const apiKeyStatus = document.getElementById('apiKeyStatus');
-            const apiKeyInput = document.getElementById('apiKeyInput');
-            const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+            
+            let currentResponseEl = null;
+            let isRecording = false;
 
-            saveApiKeyBtn.addEventListener('click', () => {
-                const key = apiKeyInput.value;
-                if (key) {
-                    vscode.postMessage({ command: 'saveApiKey', key: key });
-                }
+            const recorder = new vmsg.Recorder({
+                wasmURL: "${wasmUri}"
             });
 
-            document.getElementById('analyzeFileBtn').addEventListener('click', () => vscode.postMessage({ command: 'analyzeActiveFile' }));
-            document.getElementById('syncProjectBtn').addEventListener('click', () => vscode.postMessage({ command: 'syncProject' }));
-            document.getElementById('recordBtn').addEventListener('click', () => vscode.postMessage({ command: 'startRecording' }));
-            document.getElementById('stopBtn').addEventListener('click', () => vscode.postMessage({ command: 'stopRecording' }));
+            async function initRecorder() {
+                try {
+                    await recorder.initAudio();
+                    await recorder.initWorker();
+                } catch (e) {
+                    console.error(e);
+                    statusDiv.textContent = '❌ Error al iniciar grabadora. Revisa los permisos del micrófono.';
+                    vscode.postMessage({ command: 'recordingError', error: e.message });
+                }
+            }
+            
+            initRecorder();
+
+            document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+                const key = document.getElementById('apiKeyInput').value.trim();
+                if (key) vscode.postMessage({ command: 'saveApiKey', key: key });
+            });
+
+            recordBtn.addEventListener('click', async () => {
+                if (isRecording) {
+                    // Stop recording
+                    try {
+                        const blob = await recorder.stopRecording();
+                        isRecording = false;
+                        recordBtn.disabled = false;
+                        recordBtn.classList.remove('recording');
+                        recordBtn.textContent = '🎤 Iniciar Grabación';
+                        statusDiv.textContent = '🟡 Procesando...';
+                        
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            vscode.postMessage({ command: 'audioReady', data: reader.result });
+                        };
+                        reader.readAsDataURL(blob);
+
+                    } catch (e) {
+                        console.error(e);
+                        statusDiv.textContent = '❌ Error al detener la grabación.';
+                        vscode.postMessage({ command: 'recordingError', error: e.message });
+                    }
+                } else {
+                    // Start recording
+                    try {
+                        await recorder.startRecording();
+                        isRecording = true;
+                        recordBtn.disabled = false;
+                        recordBtn.classList.add('recording');
+                        recordBtn.textContent = '⏹️ Detener Grabación';
+                        statusDiv.textContent = '🔴 Grabando audio...';
+                        transcriptionDiv.textContent = '🎙️ Habla ahora...';
+                    } catch (e) {
+                        console.error(e);
+                        statusDiv.textContent = '❌ Error al iniciar la grabación.';
+                        vscode.postMessage({ command: 'recordingError', error: e.message });
+                    }
+                }
+            });
 
             window.addEventListener('message', event => {
                 const message = event.data;
                 switch (message.type) {
                     case 'apiKeyStatusUpdate':
-                        updateApiKeyView(message.data.hasApiKey);
+                        apiKeyForm.style.display = message.data.hasApiKey ? 'none' : 'block';
+                        apiKeyStatus.style.display = message.data.hasApiKey ? 'block' : 'none';
+                        recordBtn.disabled = !message.data.hasApiKey;
                         break;
-                    case 'update_project_info':
-                        updateProjectInfo(message.data);
+                    case 'transcription_update':
+                        transcriptionDiv.textContent = message.data.transcript;
+                        if (message.data.isFinal) {
+                            statusDiv.textContent = '✅ Transcripción completa';
+                        }
                         break;
-                    case 'gemini_response':
-                        addGeminiResponse(message.data);
+                    case 'gemini_stream_chunk':
+                        if (message.data.isNew) {
+                            if (responsesDiv.querySelector('p')) responsesDiv.innerHTML = '';
+                            const responseContainer = document.createElement('div');
+                            responseContainer.className = 'response';
+                            responseContainer.innerHTML = \`<strong>Tú:</strong> <span style="font-style: italic;">\${message.data.command}</span><hr><strong>Gemini:</strong>\`;
+                            currentResponseEl = document.createElement('div');
+                            responseContainer.appendChild(currentResponseEl);
+                            responsesDiv.prepend(responseContainer);
+                        }
+                        if (currentResponseEl) {
+                            currentResponseEl.innerHTML += message.data.chunk.replace(/\\n/g, '<br>');
+                        }
                         break;
                 }
             });
-
-            function updateApiKeyView(hasKey) {
-                if (hasKey) {
-                    apiKeyForm.style.display = 'none';
-                    apiKeyStatus.style.display = 'block';
-                } else {
-                    apiKeyForm.style.display = 'block';
-                    apiKeyStatus.style.display = 'none';
-                }
-            }
-
-            function updateProjectInfo(data) {
-                const projectInfoDiv = document.getElementById('projectInfo');
-                if (!data || (!data.files && !data.errors)) {
-                    projectInfoDiv.innerHTML = '<p>No hay información del proyecto o no se pudo cargar.</p>';
-                    return;
-                }
-                let html = '';
-                if (data.files && data.files.length > 0) html += \`<p><strong>Archivos:</strong> \${data.files.length}</p>\`;
-                if (data.errors && data.errors.length > 0) {
-                    html += \`<p><strong>Errores Detectados:</strong> \${data.errors.length}</p>\`;
-                    html += '<div class="errors">';
-                    data.errors.slice(0, 5).forEach(error => {
-                        html += \`<p class="\${error.severity}">📁 \${error.file}:\${error.line} - \${error.message}</p>\`;
-                    });
-                    html += '</div>';
-                }
-                projectInfoDiv.innerHTML = html || '<p>Análisis completado. No se encontraron errores o archivos relevantes.</p>';
-            }
-
-            function addGeminiResponse(data) {
-                const responsesDiv = document.getElementById('responses');
-                const responseEl = document.createElement('div');
-                responseEl.className = 'response';
-                
-                const sanitizedCommand = document.createElement('div');
-                sanitizedCommand.innerText = data.command;
-
-                const sanitizedResponse = document.createElement('div');
-                sanitizedResponse.innerText = data.response;
-
-                responseEl.innerHTML = \`
-                    <strong>Comando:</strong> \${sanitizedCommand.innerHTML}<br>
-                    <strong>Respuesta de Gemini:</strong><br>
-                    \${sanitizedResponse.innerHTML.replace(/\\n/g, '<br>')}
-                    <br><small>\${new Date(data.timestamp).toLocaleString()}</small>
-                \`;
-                responsesDiv.insertBefore(responseEl, responsesDiv.firstChild);
-            }
         </script>
     </body>
     </html>`;

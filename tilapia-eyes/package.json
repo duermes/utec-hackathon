@@ -81,6 +81,7 @@
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "~16.18.126",
+    "@types/node-microphone": "^0.1.4",
     "@types/vscode": "^1.102.0",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
@@ -92,9 +93,16 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@google-cloud/speech": "^7.2.0",
+    "@google/genai": "^1.10.0",
     "@google/generative-ai": "^0.2.1",
+    "install": "^0.13.0",
+    "mic-recorder-to-mp3": "^2.2.2",
+    "node-audiorecorder": "^3.0.0",
+    "node-microphone": "^0.1.6",
     "node-record-lpcm16": "^1.0.1",
     "speech-to-text": "^2.0.0",
+    "web-audio-api": "^0.2.2",
     "ws": "^8.18.3"
   },
   "optionalDependencies": {
