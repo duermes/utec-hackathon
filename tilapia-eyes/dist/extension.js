@@ -6684,20 +6684,20 @@ class GeminiVoiceAssistant {
                     model: "gemini-2.0-flash",
                 });
                 const prompt = `
-          Eres un asistente experto en análisis de código y un programador senior.
-          Analiza el siguiente fragmento de código en lenguaje "${language}".
+            Eres un asistente experto en análisis de código y un programador senior.
+            Analiza el siguiente fragmento de código en lenguaje "${language}".
 
-          Proporciona un análisis detallado que incluya:
-          1.  **Resumen**: Una breve descripción de lo que hace el código.
-          2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
-          3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
-          4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
+            Proporciona un análisis detallado que incluya:
+            1.  **Resumen**: Una breve descripción de lo que hace el código.
+            2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
+            3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
+            4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
 
-          Aquí está el código:
-          \`\`\`${language}
-          ${fileContent}
-          \`\`\`
-        `;
+            Aquí está el código:
+            \`\`\`${language}
+            ${fileContent}
+            \`\`\`
+          `;
                 const result = await model.generateContent(prompt);
                 const response = result.response.text();
                 await this.handleGeminiResponse(response, `Análisis del archivo: ${path.basename(document.fileName)}`);

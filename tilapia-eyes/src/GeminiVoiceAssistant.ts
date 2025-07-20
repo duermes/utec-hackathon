@@ -3,18 +3,7 @@ import {GoogleGenerativeAI} from "@google/generative-ai";
 import * as path from "path";
 import {WebSocket} from "ws";
 import contentHTML from "./contentHTML";
-
-interface ProjectInfo {
-  files: Array<{path: string; content: string; language: string}>;
-  structure: any;
-  errors: Array<{
-    file: string;
-    line: number;
-    message: string;
-    severity: string;
-  }>;
-  dependencies: any;
-}
+import ProjectInfo from "./types";
 
 export class GeminiVoiceAssistant {
   private genAI: GoogleGenerativeAI | null = null;
@@ -141,20 +130,20 @@ export class GeminiVoiceAssistant {
           });
 
           const prompt = `
-          Eres un asistente experto en análisis de código y un programador senior.
-          Analiza el siguiente fragmento de código en lenguaje "${language}".
+            Eres un asistente experto en análisis de código y un programador senior.
+            Analiza el siguiente fragmento de código en lenguaje "${language}".
 
-          Proporciona un análisis detallado que incluya:
-          1.  **Resumen**: Una breve descripción de lo que hace el código.
-          2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
-          3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
-          4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
+            Proporciona un análisis detallado que incluya:
+            1.  **Resumen**: Una breve descripción de lo que hace el código.
+            2.  **Posibles Errores o Bugs**: Identifica cualquier error lógico o de sintaxis.
+            3.  **Sugerencias de Mejora**: Ofrece recomendaciones para mejorar la eficiencia, legibilidad y mantenibilidad.
+            4.  **Buenas Prácticas**: Señala si se están siguiendo las convenciones del lenguaje.
 
-          Aquí está el código:
-          \`\`\`${language}
-          ${fileContent}
-          \`\`\`
-        `;
+            Aquí está el código:
+            \`\`\`${language}
+            ${fileContent}
+            \`\`\`
+          `;
 
           const result = await model.generateContent(prompt);
           const response = result.response.text();
