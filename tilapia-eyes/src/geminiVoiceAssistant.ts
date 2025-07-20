@@ -5,11 +5,6 @@ import { GoogleGenAI, Content, Model } from "@google/genai";
 import * as path from "path";
 import { WebSocket } from "ws";
 import { SpeechClient, protos } from "@google-cloud/speech";
-import { Writable } from "stream";
-import * as fs from "fs";
-import * as os from "os";
-// No longer need mic-recorder, we will inject vmsg into the webview.
-
 interface ProjectInfo {
   files: Array<{ path: string; content: string; language: string }>;
   structure: any;
