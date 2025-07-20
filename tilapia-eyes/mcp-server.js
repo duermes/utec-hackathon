@@ -10,7 +10,7 @@ class MCPServer {
   }
 
   setupServer() {
-    console.log("🚀 Servidor MCP iniciado en puerto 3000");
+    console.log("Servidor MCP iniciado en puerto 3000");
 
     this.wss.on("connection", (ws) => {
       console.log("Cliente conectado");
